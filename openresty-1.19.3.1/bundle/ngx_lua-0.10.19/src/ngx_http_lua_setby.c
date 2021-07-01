@@ -132,7 +132,7 @@ ngx_http_lua_setby_param_get(lua_State *L, ngx_http_request_t *r)
     ngx_http_variable_value_t       *v;
     ngx_http_lua_main_conf_t        *lmcf;
 
-    idx = luaL_checkint(L, 2);
+    idx = luaL_checkint(L, 2); /* 检查第二个参数是否是整数，并返回这个整数 */
     idx--;
 
     lmcf = ngx_http_get_module_main_conf(r, ngx_http_lua_module);

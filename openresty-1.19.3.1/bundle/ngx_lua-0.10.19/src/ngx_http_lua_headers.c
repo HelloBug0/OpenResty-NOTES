@@ -111,7 +111,7 @@ ngx_http_lua_ngx_req_raw_header(lua_State *L)
     ngx_http_request_t          *r, *mr;
     ngx_http_connection_t       *hc;
 
-    n = lua_gettop(L);
+    n = lua_gettop(L); /* 返回栈顶元素的索引，即栈中元素的个数 */
     if (n > 0) {
         no_req_line = lua_toboolean(L, 1);
     }
@@ -127,7 +127,7 @@ ngx_http_lua_ngx_req_raw_header(lua_State *L)
     lmcf = ngx_http_get_module_main_conf(r, ngx_http_lua_module);
 #endif
 
-    ngx_http_lua_check_fake_request(L, r);
+    ngx_http_lua_check_fake_request(L, r); /*判断是否在请求阶段调用raw_header函数 */
 
     mr = r->main;
     hc = mr->http_connection;

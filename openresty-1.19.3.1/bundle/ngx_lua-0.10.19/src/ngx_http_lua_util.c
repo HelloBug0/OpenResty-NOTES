@@ -265,9 +265,9 @@ ngx_http_lua_new_state(lua_State *parent_vm, ngx_cycle_t *cycle,
                        LUA_DEFAULT_PATH);
 
         lua_pushliteral(L, LUA_DEFAULT_PATH ";"); /* package default */
-        lua_getfield(L, -2, "path"); /* package default old */
-        lua_concat(L, 2); /* package new */
-        lua_setfield(L, -2, "path"); /* package */
+        lua_getfield(L, -2, "path"); /* package default old */ /* 获得栈中从上往下数第二个元素，即package的元素名为path的值，package.path，将该值压栈 */
+        lua_concat(L, 2); /* package new */ /* 连接栈顶的n个值，并把结果值放入栈顶，被连接的值会从栈中弹出。如果n==1，则函数不作为 */
+        lua_setfield(L, -2, "path"); /* package */ /* 将栈顶的值设置package.path的值，现在栈下标为-2的扔是package的取值，栈顶是连接后的值。设置之后，会将栈顶的元素弹出栈 */
 #endif
 
 #ifdef LUA_DEFAULT_CPATH
@@ -819,7 +819,7 @@ ngx_http_lua_inject_ngx_api(lua_State *L, ngx_http_lua_main_conf_t *lmcf,
     lua_createtable(L, 0 /* narr */, 113 /* nrec */);    /* ngx.* */
 
     lua_pushcfunction(L, ngx_http_lua_get_raw_phase_context);
-    lua_setfield(L, -2, "_phase_ctx");
+    lua_setfield(L, -2, "_phase_ctx"); /* 将栈顶的值设置进去，并弹出栈顶的值，即ngx._phase_ctx = ngx_http_lua_get_raw_phase_context。此时栈上只有一个字段ctx */
 
     ngx_http_lua_inject_arg_api(L);
 
@@ -3147,11 +3147,11 @@ ngx_http_lua_inject_arg_api(lua_State *L)
     lua_pushcfunction(L, ngx_http_lua_param_set);
     lua_setfield(L, -2, "__newindex");
 
-    lua_setmetatable(L, -2);    /*  tie the metatable to param table */
+    lua_setmetatable(L, -2);    /*  tie the metatable to param table */ /* 将栈顶的表弹出栈，并将弹出的表设置为指定栈下标的元表 */
 
     dd("top: %d, type -1: %s", lua_gettop(L), luaL_typename(L, -1));
 
-    lua_rawset(L, -3);    /*  set ngx.arg table */
+    lua_rawset(L, -3);    /*  set ngx.arg table */ /* 栈中从上往下依次是 {} arg ngx，rawset即为：ngx.arg = {}，表中__index = ngx_http_lua_param_get， __newindex = ngx_http_lua_param_set */
 }
 
 
@@ -3168,7 +3168,7 @@ ngx_http_lua_param_get(lua_State *L)
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_lua_module);
     if (ctx == NULL) {
-        return luaL_error(L, "ctx not found");
+        return luaL_error(L, "ctx not found"); /* 将C字符串转换为Lua字符串 */
     }
 
     ngx_http_lua_check_context(L, ctx, NGX_HTTP_LUA_CONTEXT_SET

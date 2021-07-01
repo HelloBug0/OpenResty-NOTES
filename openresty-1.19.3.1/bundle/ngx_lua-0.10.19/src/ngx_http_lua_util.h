@@ -372,14 +372,14 @@ ngx_http_lua_get_lua_vm(ngx_http_request_t *r, ngx_http_lua_ctx_t *ctx)
 
 
 static ngx_inline ngx_http_request_t *
-ngx_http_lua_get_req(lua_State *L)
+ngx_http_lua_get_req(lua_State *L) /* 从lua_State中获得ngx_http_request_t */
 {
 #ifdef OPENRESTY_LUAJIT
     return lua_getexdata(L);
 #else
     ngx_http_request_t    *r;
 
-    lua_getglobal(L, ngx_http_lua_req_key);
+    lua_getglobal(L, ngx_http_lua_req_key); /* 只是将ngx_http_request_t直接保存在lua_State中 */
     r = lua_touserdata(L, -1);
     lua_pop(L, 1);
 

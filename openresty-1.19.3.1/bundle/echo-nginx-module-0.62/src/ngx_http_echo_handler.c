@@ -165,7 +165,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     ngx_array_t                 *opts = NULL;
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
-    cmds = elcf->handler_cmds;
+    cmds = elcf->handler_cmds; /* 该处理函数仅处理 handler_cmds */
     if (cmds == NULL) {
         return NGX_DECLINED;
     }
@@ -177,7 +177,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
+        ngx_http_set_ctx(r, ctx, ngx_http_echo_module); /* 将上下文设置到r中 */
     }
 
     dd("exec handler: %.*s: %i", (int) r->uri.len, r->uri.data,
