@@ -48,7 +48,7 @@ ngx_http_echo_filter_init(ngx_conf_t *cf)
         dd("top header filter: %ld",
            (unsigned long) ngx_http_top_header_filter);
 
-        ngx_http_echo_next_header_filter = ngx_http_top_header_filter;
+        ngx_http_echo_next_header_filter = ngx_http_top_header_filter; /* 利用这种方式组成模块的执行顺序，进入ngx_http_echo_header_filter之后，执行ngx_http_echo_next_header_filter，，因为下一个header_filter是从原来的top_header中获取，所以就是下一个head_filter*/
         ngx_http_top_header_filter = ngx_http_echo_header_filter;
 
         dd("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
@@ -101,7 +101,7 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
     }
 
     /* enable streaming here (use chunked encoding) */
-    ngx_http_clear_content_length(r);
+    ngx_http_clear_content_length(r); /* 由此可看出如果是正常的请求，响应码包含200和206*/
     ngx_http_clear_accept_ranges(r);
 
     return ngx_http_echo_next_header_filter(r);

@@ -40,16 +40,16 @@
                               |NGX_CONF_TAKE4)
 
 #define NGX_CONF_ARGS_NUMBER 0x000000ff
-#define NGX_CONF_BLOCK       0x00000100
-#define NGX_CONF_FLAG        0x00000200
-#define NGX_CONF_ANY         0x00000400
-#define NGX_CONF_1MORE       0x00000800
-#define NGX_CONF_2MORE       0x00001000
+#define NGX_CONF_BLOCK       0x00000100 /* 配置指令可接受的值为配置信息块，{} */
+#define NGX_CONF_FLAG        0x00000200 /* 配置指令可接受的值为on/off */
+#define NGX_CONF_ANY         0x00000400 /* 配置指令可以接收任意多个参数值，一个、多个、配置块 */
+#define NGX_CONF_1MORE       0x00000800 /* 配置指令接受至少一个参数 */
+#define NGX_CONF_2MORE       0x00001000 /* 配置指令接受至少两个参数 */
 
-#define NGX_DIRECT_CONF      0x00010000
+#define NGX_DIRECT_CONF      0x00010000 /* 可以出现在配置的最外层，如daemon, master_process */
 
-#define NGX_MAIN_CONF        0x01000000
-#define NGX_ANY_CONF         0xFF000000
+#define NGX_MAIN_CONF        0x01000000 /* http、mail、events、error_log等 */
+#define NGX_ANY_CONF         0xFF000000 /* 可以出现在任意配置级别上 */
 
 
 

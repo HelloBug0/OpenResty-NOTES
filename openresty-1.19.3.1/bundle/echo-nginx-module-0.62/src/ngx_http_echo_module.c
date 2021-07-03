@@ -92,8 +92,8 @@ static ngx_command_t  ngx_http_echo_commands[] = {
     { ngx_string("echo"),
       NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_ANY,
       ngx_http_echo_echo,
-      NGX_HTTP_LOC_CONF_OFFSET,
-      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NGX_HTTP_LOC_CONF_OFFSET, /* 指定配置的存储位置 */
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds), /* 指定配置项的具体保存位置，在结构体中的字段偏移 */
       NULL },
 
     { ngx_string("echo_request_body"),
@@ -146,7 +146,7 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NULL },
 
     { ngx_string("echo_location_async"),
-      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE12,
+      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE12, /* 一个参数或者两个参数 */
       ngx_http_echo_echo_location_async,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
@@ -228,8 +228,8 @@ static ngx_command_t  ngx_http_echo_commands[] = {
 
 ngx_module_t ngx_http_echo_module = {
     NGX_MODULE_V1,
-    &ngx_http_echo_module_ctx,     /* module context */
-    ngx_http_echo_commands,        /* module directives */
+    &ngx_http_echo_module_ctx,     /* module context */ /* 定义好的结构体变量，已经赋值 */
+    ngx_http_echo_commands,        /* module directives */ /* 定义好的结构体变量，已经赋值 */
     NGX_HTTP_MODULE,               /* module type */
     NULL,                          /* init master */
     NULL,                          /* init module */
@@ -294,7 +294,7 @@ ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 static char *
 ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     ngx_http_echo_cmd_category_t cat,
-    ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* cmd: 保存nginx.conf配置指令中的信息，conf: ngx_http_echo_loc_conf_t */
+    ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* cf->args->elts: 保存nginx.conf配置指令中的信息，cmd：全局变量ngx_http_echo_commands中定义的指令信息，conf: ngx_http_echo_loc_conf_t */
 {
     ngx_str_t                       *raw_args;
     ngx_uint_t                       i, n;

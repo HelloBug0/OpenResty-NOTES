@@ -37,14 +37,14 @@ typedef struct {
 
 
 #define NGX_HTTP_MODULE           0x50545448   /* "HTTP" */
-
-#define NGX_HTTP_MAIN_CONF        0x02000000
-#define NGX_HTTP_SRV_CONF         0x04000000
-#define NGX_HTTP_LOC_CONF         0x08000000
-#define NGX_HTTP_UPS_CONF         0x10000000
-#define NGX_HTTP_SIF_CONF         0x20000000
-#define NGX_HTTP_LIF_CONF         0x40000000
-#define NGX_HTTP_LMT_CONF         0x80000000
+/* 定义指令允许出现的位置 */
+#define NGX_HTTP_MAIN_CONF        0x02000000 /* Http */
+#define NGX_HTTP_SRV_CONF         0x04000000 /* Server */
+#define NGX_HTTP_LOC_CONF         0x08000000 /* Location */
+#define NGX_HTTP_UPS_CONF         0x10000000 /* Upstream */
+#define NGX_HTTP_SIF_CONF         0x20000000 /* Server if */
+#define NGX_HTTP_LIF_CONF         0x40000000 /* Location if */
+#define NGX_HTTP_LMT_CONF         0x80000000 /* Limit except */
 
 
 #define NGX_HTTP_MAIN_CONF_OFFSET  offsetof(ngx_http_conf_ctx_t, main_conf)
