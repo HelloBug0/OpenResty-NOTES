@@ -120,7 +120,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
             buf->memory = 1;
         }
 
-        if (cl == NULL) {
+        if (cl == NULL) { /* cl 初始值为NULL */
             cl = ngx_alloc_chain_link(r->pool);
             if (cl == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -129,7 +129,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
             cl->next = NULL;
             ll = &cl->next;
 
-        } else {
+        } else { /* 因为 ll 指向 cl 的last link，所以若进入这个分支，ll 需要重新申请 */
             /* append a space first */
             *ll = ngx_alloc_chain_link(r->pool);
 
@@ -145,7 +145,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
             /* nginx clears buf flags at the end of each request handling,
              * so we have to make a clone here. */
-            *space_buf = ngx_http_echo_space_buf;
+            *space_buf = ngx_http_echo_space_buf; /* 每次输出一个变量之后，需要输出一个空格 */
 
             (*ll)->buf = space_buf;
             (*ll)->next = NULL;
@@ -170,7 +170,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         cl = cl->next;
     }
 
-    if (opts && opts->nelts > 0) {
+    if (opts && opts->nelts > 0) { /* opts 里的内容不会输出 */
         opt = opts->elts;
         /* FIXME handle other unrecognized options here */
         if (opt[0].len == 1 && opt[0].data[0] == 'n') {
@@ -178,7 +178,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         }
     }
 
-    /* append the newline character */
+    /* append the newline character */ /* 以下代码为输出一个换行，每个echo命令执行之后都会输出一个换行 */
 
     newline_buf = ngx_calloc_buf(r->pool);
 

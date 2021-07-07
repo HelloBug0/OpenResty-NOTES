@@ -16,7 +16,7 @@
 
 ngx_uint_t  ngx_http_echo_content_length_hash = 0;
 
-
+/* 此文件的函数都不包含 static 参数，供 echo module 这个模块使用 */
 ngx_http_echo_ctx_t *
 ngx_http_echo_create_ctx(ngx_http_request_t *r)
 {
@@ -37,7 +37,7 @@ ngx_http_echo_create_ctx(ngx_http_request_t *r)
 
 ngx_int_t
 ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
-    ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args,
+    ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args, /* computed_args 保存需要计算得到的变量值，opts保存无需计算的常量 */
     ngx_array_t *opts)
 {
     unsigned                         expecting_opts = 1;
@@ -49,7 +49,7 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
     value = args->elts;
 
     for (i = 0; i < args->nelts; i++) {
-        raw = &value[i].raw_value;
+        raw = &value[i].raw_value; /* value[i] 对应结构体为 ngx_http_echo_arg_template_t, 该结构体变量初始化函数*/
 
         if (value[i].lengths == NULL && raw->len > 0) {
             if (expecting_opts) {
@@ -61,7 +61,7 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
                     continue;
 
                 } else {
-                    opt = ngx_array_push(opts);
+                    opt = ngx_array_push(opts); /* raw中保存的是 echo 指令取值的原始字符串 */
                     if (opt == NULL) {
                         return NGX_HTTP_INTERNAL_SERVER_ERROR;
                     }
@@ -79,7 +79,7 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
             expecting_opts = 0;
         }
 
-        arg = ngx_array_push(computed_args);
+        arg = ngx_array_push(computed_args); /* computed_args 里面保存的是 echo 指令输出的参数或具体输出值 */
         if (arg == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }

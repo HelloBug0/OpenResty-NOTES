@@ -108,7 +108,7 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
 }
 
 
-static ngx_int_t /* header filter 的参数仅为 ngx_http_request_t , body_filter 多了一个 ngx_chain_t 里面保存的是响应？*/
+static ngx_int_t /* header filter 的参数仅为 ngx_http_request_t , body_filter 多了一个 ngx_chain_t 里面保存的是响应内容 */
 ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 {
     ngx_http_echo_ctx_t         *ctx;

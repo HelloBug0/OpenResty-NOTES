@@ -425,7 +425,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc)
     ngx_str_t    name;
     ngx_uint_t   i, bracket;
 
-    if (ngx_http_script_init_arrays(sc) != NGX_OK) { /* 初始化sc变量中的array类型的length,values, 和variables变量 */
+    if (ngx_http_script_init_arrays(sc) != NGX_OK) { /* 初始化sc变量中的array类型的length, values, 和variables变量 */
         return NGX_ERROR;
     }
 
@@ -511,7 +511,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc)
                 goto invalid_variable;
             }
 
-            sc->variables++;
+            sc->variables++; /* 函数 ngx_http_script_init_arrays 中 sc->variables 已经初始化为零，这里重新统计 variables 个数 */
 
             if (ngx_http_script_add_var_code(sc, &name) != NGX_OK) { /* 解析出一个变量，将获得变量值和长度等的信息放入sc中 */
                 return NGX_ERROR;
@@ -600,7 +600,7 @@ ngx_http_script_run(ngx_http_request_t *r, ngx_str_t *value,
 
     while (*(uintptr_t *) e.ip) {
         lcode = *(ngx_http_script_len_code_pt *) e.ip;
-        len += lcode(&e);
+        len += lcode(&e); /* lcode是计算变量值的函数 */
     }
 
 
@@ -646,7 +646,7 @@ ngx_http_script_init_arrays(ngx_http_script_compile_t *sc)
     ngx_uint_t   n;
 
     if (sc->flushes && *sc->flushes == NULL) {
-        n = sc->variables ? sc->variables : 1;
+        n = sc->variables ? sc->variables : 1; /* variable 指变量的个数 */
         *sc->flushes = ngx_array_create(sc->cf->pool, n, sizeof(ngx_uint_t));
         if (*sc->flushes == NULL) {
             return NGX_ERROR;
@@ -853,7 +853,7 @@ ngx_http_script_add_var_code(ngx_http_script_compile_t *sc, ngx_str_t *name)
     ngx_int_t                    index, *p;
     ngx_http_script_var_code_t  *code;
 
-    index = ngx_http_get_variable_index(sc->cf, name); /* sc->cf 类型：ngx_conf_t */
+    index = ngx_http_get_variable_index(sc->cf, name); /* sc->cf 类型：ngx_conf_t 获得 name 变量在变量数组中的下标 */
 
     if (index == NGX_ERROR) {
         return NGX_ERROR;
@@ -865,7 +865,7 @@ ngx_http_script_add_var_code(ngx_http_script_compile_t *sc, ngx_str_t *name)
             return NGX_ERROR;
         }
 
-        *p = index;
+        *p = index; /* 保存变量的下标 */
     }
 
     code = ngx_http_script_add_code(*sc->lengths, /* 创建数组的时候，指定的元素的大小是1，这里的第二个参数就是在数组里申请一个元素地址的时候指定元素的大小 */

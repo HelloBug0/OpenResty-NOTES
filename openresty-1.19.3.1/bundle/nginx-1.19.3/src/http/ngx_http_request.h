@@ -415,7 +415,7 @@ struct ngx_http_request_s {
     ngx_str_t                         schema;
 
     ngx_chain_t                      *out; /* 要发送的HTTP响应，保存着headers_out中序列化后的http头部流 */
-    ngx_http_request_t               *main; /* 判断是否时子请求，通过判断main和当前请求地址是否相等，判断是否是原始请求 */
+    ngx_http_request_t               *main; /* 判断是否是子请求，通过判断main和当前请求地址是否相等，判断是否是原始请求 */
     ngx_http_request_t               *parent; /* 当前请求的父请求，父请求不一定是是原始请求 */
     ngx_http_postponed_request_t     *postponed;
     ngx_http_post_subrequest_t       *post_subrequest;
