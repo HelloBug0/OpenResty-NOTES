@@ -1590,7 +1590,7 @@ ngx_http_set_content_type(ngx_http_request_t *r)
     ngx_uint_t                 i, hash;
     ngx_http_core_loc_conf_t  *clcf;
 
-    if (r->headers_out.content_type.len) {
+    if (r->headers_out.content_type.len) { /* Content-Type已经设置 */
         return NGX_OK;
     }
 
@@ -1610,7 +1610,7 @@ ngx_http_set_content_type(ngx_http_request_t *r)
                     return NGX_ERROR;
                 }
 
-                hash = ngx_hash_strlow(exten, r->exten.data, r->exten.len);
+                hash = ngx_hash_strlow(exten, r->exten.data, r->exten.len); /* 求字符串extern的哈希值=hash, 并将r->exten.data转换为小写=exten */
 
                 r->exten.data = exten;
 
@@ -1620,10 +1620,10 @@ ngx_http_set_content_type(ngx_http_request_t *r)
             hash = ngx_hash(hash, c);
         }
 
-        type = ngx_hash_find(&clcf->types_hash, hash,
+        type = ngx_hash_find(&clcf->types_hash, hash, /* 从类型哈希表中查找该类型 */
                              r->exten.data, r->exten.len);
 
-        if (type) {
+        if (type) { /* 查找成功，设置该类型 */
             r->headers_out.content_type_len = type->len;
             r->headers_out.content_type = *type;
 
@@ -1631,7 +1631,7 @@ ngx_http_set_content_type(ngx_http_request_t *r)
         }
     }
 
-    r->headers_out.content_type_len = clcf->default_type.len;
+    r->headers_out.content_type_len = clcf->default_type.len; /* 填写默认的响应头域 Content-Type */
     r->headers_out.content_type = clcf->default_type;
 
     return NGX_OK;
@@ -1823,11 +1823,11 @@ ngx_http_send_response(ngx_http_request_t *r, ngx_uint_t status,
 ngx_int_t
 ngx_http_send_header(ngx_http_request_t *r)
 {
-    if (r->post_action) {
+    if (r->post_action) { /* 取值为http core module 指令 post_action 的取值 */
         return NGX_OK;
     }
 
-    if (r->header_sent) {
+    if (r->header_sent) { /* 响应体是否已经发送 */
         ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
                       "header already sent");
         return NGX_ERROR;
@@ -1838,7 +1838,7 @@ ngx_http_send_header(ngx_http_request_t *r)
         r->headers_out.status_line.len = 0;
     }
 
-    return ngx_http_top_header_filter(r);
+    return ngx_http_top_header_filter(r); /* 执行下一个header_filter */
 }
 
 

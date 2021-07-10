@@ -116,7 +116,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t *r,
         return rc;
     }
 
-    if (in == NULL) {
+    if (in == NULL) { /* 没有要输出的body */
 
 #if defined(nginx_version) && nginx_version <= 8004
 
@@ -137,7 +137,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t *r,
     }
 
     /* FIXME we should udpate chains to recycle chain links and bufs */
-    return ngx_http_output_filter(r, in);
+    return ngx_http_output_filter(r, in); /* 执行 body_filter 函数 */
 }
 
 
@@ -151,17 +151,17 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t *r,
     if (!r->header_sent && !ctx->header_sent) {
         elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
 
-        r->headers_out.status = (ngx_uint_t) elcf->status;
+        r->headers_out.status = (ngx_uint_t) elcf->status; /* 指令 echo_status 配置的值，设置响应码 */
 
-        if (ngx_http_set_content_type(r) != NGX_OK) {
+        if (ngx_http_set_content_type(r) != NGX_OK) { /* 设置响应头域 Content-Type */
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        ngx_http_clear_content_length(r);
-        ngx_http_clear_accept_ranges(r);
+        ngx_http_clear_content_length(r); /* 清除响应头域 Content-Length */
+        ngx_http_clear_accept_ranges(r); /* 清除响应头域 Accept-Ranges */
 
-        rc = ngx_http_send_header(r);
-        ctx->header_sent = 1;
+        rc = ngx_http_send_header(r); /* 设置响应码      */
+        ctx->header_sent = 1; /* 设置响应头域已经发送标志 */
         return rc;
     }
 

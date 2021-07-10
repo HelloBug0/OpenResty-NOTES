@@ -3498,7 +3498,7 @@ ngx_http_send_special(ngx_http_request_t *r, ngx_uint_t flags)
 
     if (flags & NGX_HTTP_LAST) {
 
-        if (r == r->main && !r->post_action) {
+        if (r == r->main && !r->post_action) { /* 当前请求是主请求 */
             b->last_buf = 1;
 
         } else {
@@ -3514,7 +3514,7 @@ ngx_http_send_special(ngx_http_request_t *r, ngx_uint_t flags)
     out.buf = b;
     out.next = NULL;
 
-    return ngx_http_output_filter(r, &out);
+    return ngx_http_output_filter(r, &out); /* 直接设置当前发送的 buf 是最后一个 buf */
 }
 
 

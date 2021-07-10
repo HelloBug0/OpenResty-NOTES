@@ -86,7 +86,7 @@ typedef struct {
 
     unsigned         seen_leading_output;
 
-    ngx_int_t        status;
+    ngx_int_t        status; /* 指令 echo_status 取值 */
 } ngx_http_echo_loc_conf_t;
 
 

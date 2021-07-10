@@ -110,12 +110,12 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 
     rc = ngx_http_echo_run_cmds(r);
 
-    dd("run cmds returned %d", (int) rc);
+    dd("run cmds returned %d", (int) rc); /* 为什么执行命令之后，还要做下面这些操作？*/
 
     if (rc == NGX_ERROR
         || rc == NGX_OK
         || rc == NGX_DONE
-        || rc == NGX_DECLINED)
+        || rc == NGX_DECLINED) /* 不执行 content_phase 的命令执行 */
     {
         return rc;
     }
@@ -165,16 +165,16 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     ngx_array_t                 *opts = NULL;
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
-    cmds = elcf->handler_cmds; /* 该处理函数仅处理 handler_cmds */
+    cmds = elcf->handler_cmds; /* 该处理函数仅处理 handler_cmds，即 content_phase 阶段执行的命令 */
     if (cmds == NULL) {
         return NGX_DECLINED;
     }
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
     if (ctx == NULL) {
-        ctx = ngx_http_echo_create_ctx(r);
+        ctx = ngx_http_echo_create_ctx(r); /* ctx 为空，会重新创建 */
         if (ctx == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_HTTP_INTERNAL_SERVER_ERROR; /* 该响应码表示请求结束，返回500 */
         }
 
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module); /* 将上下文设置到r中 */
@@ -190,7 +190,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
         cmd = &cmd_elts[ctx->next_handler_cmd];
 
         /* evaluate arguments for the current cmd (if any) */
-        if (cmd->args) {
+        if (cmd->args) { /* 初始化命令执行需要的临时变量 */
             computed_args = ngx_array_create(r->pool, cmd->args->nelts,
                                              sizeof(ngx_str_t));
 
@@ -365,7 +365,7 @@ read_request_body:
         return rc;
     }
 
-    if (!r->request_body) {
+    if (!r->request_body) { /* 如果没有设置要求请求体处理的标志，请求体丢弃 */
         if (ngx_http_discard_request_body(r) != NGX_OK) {
             return NGX_ERROR;
         }

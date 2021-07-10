@@ -407,7 +407,7 @@ struct ngx_http_request_s {
     ngx_str_t                         request_line;
     ngx_str_t                         uri;
     ngx_str_t                         args;
-    ngx_str_t                         exten;
+    ngx_str_t                         exten; /* 根据响应体设置的Content-Type? */
     ngx_str_t                         unparsed_uri;
 
     ngx_str_t                         method_name;
@@ -528,12 +528,12 @@ struct ngx_http_request_s {
     unsigned                          expect_trailers:1;
     unsigned                          keepalive:1;
     unsigned                          lingering_close:1;
-    unsigned                          discard_body:1;
+    unsigned                          discard_body:1; /* 请求体已经全部丢弃标志 */
     unsigned                          reading_body:1;
     unsigned                          internal:1;
     unsigned                          error_page:1;
     unsigned                          filter_finalize:1;
-    unsigned                          post_action:1;
+    unsigned                          post_action:1; /* 配置指令：post_action取值 */
     unsigned                          request_complete:1;
     unsigned                          request_output:1;
     unsigned                          header_sent:1;

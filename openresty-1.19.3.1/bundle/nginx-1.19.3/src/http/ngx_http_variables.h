@@ -26,12 +26,12 @@ typedef ngx_int_t (*ngx_http_get_variable_pt) (ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
 
 
-#define NGX_HTTP_VAR_CHANGEABLE   1
-#define NGX_HTTP_VAR_NOCACHEABLE  2
-#define NGX_HTTP_VAR_INDEXED      4
-#define NGX_HTTP_VAR_NOHASH       8
-#define NGX_HTTP_VAR_WEAK         16
-#define NGX_HTTP_VAR_PREFIX       32
+#define NGX_HTTP_VAR_CHANGEABLE   1 /* 变量可修改，nginx有些内置变量不可修改，该标志表示可修改 */
+#define NGX_HTTP_VAR_NOCACHEABLE  2 /* 变量每次取值不可从缓存中取值 */
+#define NGX_HTTP_VAR_INDEXED      4 /* 变量使用索引获得 */
+#define NGX_HTTP_VAR_NOHASH       8 /* 变量不需要被hash */
+#define NGX_HTTP_VAR_WEAK         16 /* 弱变量 */
+#define NGX_HTTP_VAR_PREFIX       32 /* 包含http前缀，比如http请求头域值的获得，需要使用变量 http_自定义头域 获得                     */
 
 
 struct ngx_http_variable_s {

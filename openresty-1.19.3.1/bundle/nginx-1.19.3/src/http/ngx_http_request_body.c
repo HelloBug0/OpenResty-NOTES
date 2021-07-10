@@ -569,8 +569,8 @@ ngx_http_discard_request_body(ngx_http_request_t *r)
     ngx_int_t     rc;
     ngx_event_t  *rev;
 
-    if (r != r->main || r->discard_body || r->request_body) {
-        return NGX_OK;
+    if (r != r->main || r->discard_body || r->request_body) { /* discard_body=1 表示已经执行过，request_body 不为空，表示请求体已经获得 */
+        return NGX_OK; /* 子请求不会和客户端进行交互，没有请求体的读取 */
     }
 
 #if (NGX_HTTP_V2)
@@ -584,15 +584,15 @@ ngx_http_discard_request_body(ngx_http_request_t *r)
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    rev = r->connection->read;
+    rev = r->connection->read; /* 获得连接中的读事件 */
 
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, rev->log, 0, "http set discard body");
 
-    if (rev->timer_set) {
+    if (rev->timer_set) { /* 删除读事件中的定时器 */
         ngx_del_timer(rev);
     }
 
-    if (r->headers_in.content_length_n <= 0 && !r->headers_in.chunked) {
+    if (r->headers_in.content_length_n <= 0 && !r->headers_in.chunked) { /* 如果请求体本身为空，则直接返回 */
         return NGX_OK;
     }
 
@@ -605,11 +605,11 @@ ngx_http_discard_request_body(ngx_http_request_t *r)
             return rc;
         }
 
-        if (r->headers_in.content_length_n == 0) {
+        if (r->headers_in.content_length_n == 0) { /* 请求体已经全部处理完毕 */
             return NGX_OK;
         }
     }
-
+    /* 有部分请求体没有读取到，需要从连接中继续读取请求体处理 */
     rc = ngx_http_read_discarded_request_body(r);
 
     if (rc == NGX_OK) {
@@ -770,7 +770,7 @@ ngx_http_read_discarded_request_body(ngx_http_request_t *r)
 }
 
 
-static ngx_int_t
+static ngx_int_t /* 丢弃请求体，其实是移动保存请求体内容的指针，并且设置一些变量值，如content_length，用来帮助移动指针 */
 ngx_http_discard_request_body_filter(ngx_http_request_t *r, ngx_buf_t *b)
 {
     size_t                     size;
@@ -778,7 +778,7 @@ ngx_http_discard_request_body_filter(ngx_http_request_t *r, ngx_buf_t *b)
     ngx_http_request_body_t   *rb;
     ngx_http_core_srv_conf_t  *cscf;
 
-    if (r->headers_in.chunked) {
+    if (r->headers_in.chunked) { /* chunk 方式传输，尽管请求体不做处理，但是chunk方式传输时，也要验证请求体格式的合法性 */
 
         rb = r->request_body;
 
@@ -799,7 +799,7 @@ ngx_http_discard_request_body_filter(ngx_http_request_t *r, ngx_buf_t *b)
 
         for ( ;; ) {
 
-            rc = ngx_http_parse_chunked(r, b, rb->chunked);
+            rc = ngx_http_parse_chunked(r, b, rb->chunked); /* headers_in 里主要用于保存请求头信息，也可能包含请求体信息。rb->chunked 中保存的状态信息不变 */
 
             if (rc == NGX_OK) {
 
@@ -807,12 +807,12 @@ ngx_http_discard_request_body_filter(ngx_http_request_t *r, ngx_buf_t *b)
 
                 size = b->last - b->pos;
 
-                if ((off_t) size > rb->chunked->size) {
+                if ((off_t) size > rb->chunked->size) { /* headers_in中包含chunk信息，并且是完整的一个chunk */
                     b->pos += (size_t) rb->chunked->size;
                     rb->chunked->size = 0;
 
-                } else {
-                    rb->chunked->size -= size;
+                } else { 
+                    rb->chunked->size -= size; /* 设置chunk剩余的请求体的大小 */
                     b->pos = b->last;
                 }
 
@@ -833,7 +833,7 @@ ngx_http_discard_request_body_filter(ngx_http_request_t *r, ngx_buf_t *b)
 
                 cscf = ngx_http_get_module_srv_conf(r, ngx_http_core_module);
 
-                r->headers_in.content_length_n = ngx_max(rb->chunked->length,
+                r->headers_in.content_length_n = ngx_max(rb->chunked->length, /* 设置下次需要处理的请求体的大小 */
                                (off_t) cscf->large_client_header_buffers.size);
                 break;
             }
@@ -846,12 +846,12 @@ ngx_http_discard_request_body_filter(ngx_http_request_t *r, ngx_buf_t *b)
             return NGX_HTTP_BAD_REQUEST;
         }
 
-    } else {
-        size = b->last - b->pos;
+    } else { /* 非 chunk 方式传输 */
+        size = b->last - b->pos; /* headers_in 里保存的请求体的大小 */
 
-        if ((off_t) size > r->headers_in.content_length_n) {
-            b->pos += (size_t) r->headers_in.content_length_n;
-            r->headers_in.content_length_n = 0;
+        if ((off_t) size > r->headers_in.content_length_n) { /* 这里会大于content_length，应该是headers_in里包含其他请求体内容 */
+            b->pos += (size_t) r->headers_in.content_length_n; /* b->pos 设置其他请求体的首部 */
+            r->headers_in.content_length_n = 0; /* 请求体要丢弃，这里将content_length设置为0 */
 
         } else {
             b->pos = b->last;
@@ -880,9 +880,9 @@ ngx_http_test_expect(ngx_http_request_t *r)
         return NGX_OK;
     }
 
-    r->expect_tested = 1;
+    r->expect_tested = 1; /* 是否已经发送 100 */
 
-    expect = &r->headers_in.expect->value;
+    expect = &r->headers_in.expect->value; /* 如果请求头域中包含：Expect: 100-continue，则先发送 100 响应 */
 
     if (expect->len != sizeof("100-continue") - 1
         || ngx_strncasecmp(expect->data, (u_char *) "100-continue",

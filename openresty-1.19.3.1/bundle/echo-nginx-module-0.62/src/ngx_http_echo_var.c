@@ -12,7 +12,7 @@
 static ngx_int_t ngx_http_echo_incr_variable(ngx_http_request_t *r,
         ngx_http_variable_value_t *v, uintptr_t data);
 
-
+/* 可根据当前文件学习，如何为模块添加变量。在配置解析完成之后，post_config阶段添加变量                 */
 static ngx_http_variable_t ngx_http_echo_variables[] = {
 
     { ngx_string("echo_timer_elapsed"), NULL,

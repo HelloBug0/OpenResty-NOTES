@@ -217,11 +217,11 @@ done:
         return NGX_OK;
     }
 
-    if (in_filter) {
+    if (in_filter) { /* filter 阶段，后面的header_filter或者body_filter阶段需要继续执行 */
         return ngx_http_echo_next_body_filter(r, cl);
     }
 
-    return ngx_http_echo_send_chain_link(r, ctx, cl);
+    return ngx_http_echo_send_chain_link(r, ctx, cl); /* content_phase 阶段，发送输出的内容 */
 }
 
 
