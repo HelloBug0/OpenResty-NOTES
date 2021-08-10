@@ -2305,9 +2305,9 @@ ngx_http_gzip_quantity(u_char *p, u_char *last)
 
 
 ngx_int_t
-ngx_http_subrequest(ngx_http_request_t *r,
-    ngx_str_t *uri, ngx_str_t *args, ngx_http_request_t **psr,
-    ngx_http_post_subrequest_t *ps, ngx_uint_t flags)
+ngx_http_subrequest(ngx_http_request_t *r, /* 调用该方法，创建一个子请求，该方法不会执行一个子请求，在父请求返回NGX_DONE之后，Nginx会根据 posted_requests 链表执行子请求 */
+    ngx_str_t *uri, ngx_str_t *args, ngx_http_request_t **psr, /* uri：子请求的uri，args：子请求的uri参数，psr：传出参数，创建的子请求 */
+    ngx_http_post_subrequest_t *ps, ngx_uint_t flags) /* ps：子请求结束时必须调用的回调函数，flags：0：通常取值，1：如果子请求使用upstreams访问上游服务器，则 subrequest_in_memory 置为1， */
 {
     ngx_time_t                    *tp;
     ngx_connection_t              *c;

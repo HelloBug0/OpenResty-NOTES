@@ -342,7 +342,7 @@ typedef ngx_int_t (*ngx_http_post_subrequest_pt)(ngx_http_request_t *r,
     void *data, ngx_int_t rc);
 
 typedef struct {
-    ngx_http_post_subrequest_pt       handler;
+    ngx_http_post_subrequest_pt       handler; /* 子请求正常或者异常结束时，会调用该方法，其中该函数的data参数取值就是下一个字段data */
     void                             *data;
 } ngx_http_post_subrequest_t;
 

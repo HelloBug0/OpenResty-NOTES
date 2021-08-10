@@ -45,51 +45,51 @@ struct ngx_shm_zone_s {
 
 
 struct ngx_cycle_s {
-    void                  ****conf_ctx;
+    void                  ****conf_ctx; /* 保存着所有模块存储配置项的结构体的指针 */
     ngx_pool_t               *pool;
 
-    ngx_log_t                *log;
-    ngx_log_t                 new_log;
+    ngx_log_t                *log; /* 日志模块提供生成ngx_log_t日志对象的功能，在还没有执行ngx_init_cycle方法前，也就是还没有解析配置前，如果有信息需要输出到日志，就会使用这个对象，他会将日志输出到屏幕上。在ngx_init_cycle之后，将会根据nginx.conf中的配置，构造出正确的日志文件，会对log进行重新赋值 */
+    ngx_log_t                 new_log; /* 读取nginx.conf配置文件之后，初始化error_log日志文件，文件指针即为new_log，上述的log指针指向屏幕，这里会使用new_log代替log，初始化成功之后，会将new_log赋值给log */
 
     ngx_uint_t                log_use_stderr;  /* unsigned  log_use_stderr:1; */
 
-    ngx_connection_t        **files;
-    ngx_connection_t         *free_connections;
-    ngx_uint_t                free_connection_n;
+    ngx_connection_t        **files; /* 像poll、rtsig这样的事件处理模块，会以有效文件句柄数来预先建立ngx_connection_t结构体，以加速事件的收集和分发。files 保存所有的ngx_connection_t的指针组成的数组 */
+    ngx_connection_t         *free_connections; /* 可用连接池 */
+    ngx_uint_t                free_connection_n; /* 可用连接池的数量 */
 
     ngx_module_t            **modules;
     ngx_uint_t                modules_n;
     ngx_uint_t                modules_used;    /* unsigned  modules_used:1; */
 
-    ngx_queue_t               reusable_connections_queue;
+    ngx_queue_t               reusable_connections_queue; /* 双向链表，可重复使用的连接队列 */
     ngx_uint_t                reusable_connections_n;
     time_t                    connections_reuse_time;
 
-    ngx_array_t               listening;
-    ngx_array_t               paths;
+    ngx_array_t               listening; /* 动态数组，数组元素类型 ngx_listening_t，每个数组元素保存一个监听的端口 */
+    ngx_array_t               paths; /* 动态数组容器，保存nginx要操作的目录，如果目录不存在，则重新创建，而创建目录失败，会导致nginx启动失败 */
 
     ngx_array_t               config_dump;
     ngx_rbtree_t              config_dump_rbtree;
     ngx_rbtree_node_t         config_dump_sentinel;
 
-    ngx_list_t                open_files;
-    ngx_list_t                shared_memory;
+    ngx_list_t                open_files; /* 单链表，元素类型为 ngx_open_file_t，Nginx 已经打开的文件，Nginx框架不会向该链表中添加文件，感兴趣的模块向其中添加，Nginx框架会在ngx_init_cycle中打开这些文件 */
+    ngx_list_t                shared_memory; /* 单链表，元素类型为 ngx_shm_zone_t 结构体，每个元素表示一块共享内存 */
 
-    ngx_uint_t                connection_n;
+    ngx_uint_t                connection_n; /* 当前进程中所有连接数 */
     ngx_uint_t                files_n;
 
-    ngx_connection_t         *connections;
-    ngx_event_t              *read_events;
-    ngx_event_t              *write_events;
+    ngx_connection_t         *connections; /* 当前进程中所有连接对象 */
+    ngx_event_t              *read_events; /* 当前进程中所有读事件对象 */
+    ngx_event_t              *write_events; /* 当前进程中所有写事件对象 */
 
-    ngx_cycle_t              *old_cycle;
+    ngx_cycle_t              *old_cycle; /* 旧的ngx_cycle_t对象 */
 
-    ngx_str_t                 conf_file;
-    ngx_str_t                 conf_param;
-    ngx_str_t                 conf_prefix;
-    ngx_str_t                 prefix;
-    ngx_str_t                 lock_file;
-    ngx_str_t                 hostname;
+    ngx_str_t                 conf_file; /* 配置文件相对于安装目录的路径名称 */
+    ngx_str_t                 conf_param; /* 命令行中携带的配置参数 */
+    ngx_str_t                 conf_prefix; /* 配置文件所在目录的路径 */
+    ngx_str_t                 prefix; /* 安装目录的路径 */
+    ngx_str_t                 lock_file; /* 用于进程间同步的文件锁名称 */
+    ngx_str_t                 hostname; /* 使用 gethostname 系统调用获得的主机名 */
 
     ngx_log_intercept_pt      intercept_error_log_handler;
     void                     *intercept_error_log_data;

@@ -787,7 +787,7 @@ static ngx_http_module_t  ngx_http_proxy_module_ctx = {
 
 ngx_module_t  ngx_http_proxy_module = {
     NGX_MODULE_V1,
-    &ngx_http_proxy_module_ctx,            /* module context */
+    &ngx_http_proxy_module_ctx,            /* module context ctx和commands两个变量都是为了这里赋值使用 */
     ngx_http_proxy_commands,               /* module directives */
     NGX_HTTP_MODULE,                       /* module type */
     NULL,                                  /* init master */
@@ -3209,7 +3209,7 @@ ngx_http_proxy_add_variables(ngx_conf_t *cf)
             return NGX_ERROR;
         }
 
-        var->get_handler = v->get_handler;
+        var->get_handler = v->get_handler; /* proxy模块的变量都是设置get_handler */
         var->data = v->data;
     }
 
@@ -3573,7 +3573,7 @@ ngx_http_proxy_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
     if (conf->upstream.cache_zone && conf->upstream.cache_zone->data == NULL) {
         ngx_shm_zone_t  *shm_zone;
 
-        shm_zone = conf->upstream.cache_zone;
+        shm_zone = conf->upstream.cache_zone; /* 这个局部变量仅用于输出日志 */
 
         ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                            "\"proxy_cache\" zone \"%V\" is unknown",
@@ -3589,7 +3589,7 @@ ngx_http_proxy_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
                               prev->upstream.cache_max_range_offset,
                               NGX_MAX_OFF_T_VALUE);
 
-    ngx_conf_merge_bitmask_value(conf->upstream.cache_use_stale,
+    ngx_conf_merge_bitmask_value(conf->upstream.cache_use_stale, /* 是否使用过期缓存？*/
                               prev->upstream.cache_use_stale,
                               (NGX_CONF_BITMASK_SET
                                |NGX_HTTP_UPSTREAM_FT_OFF));
@@ -3700,7 +3700,7 @@ ngx_http_proxy_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
             conf->redirects = prev->redirects;
         }
 
-        if (conf->redirects == NULL && conf->url.data) {
+        if (conf->redirects == NULL && conf->url.data) { /* prev->redirects值为NULL */
 
             conf->redirects = ngx_array_create(cf->pool, 1,
                                              sizeof(ngx_http_proxy_rewrite_t));
@@ -3906,7 +3906,7 @@ ngx_http_proxy_init_headers(ngx_conf_t *cf, ngx_http_proxy_loc_conf_t *conf,
 
     if (conf->headers_source) {
 
-        src = conf->headers_source->elts;
+        src = conf->headers_source->elts; /* conf->headers_source 中保存 proxy_set_header 指令配置的 key val 取值 */
         for (i = 0; i < conf->headers_source->nelts; i++) {
 
             s = ngx_array_push(&headers_merged);
@@ -3942,7 +3942,7 @@ ngx_http_proxy_init_headers(ngx_conf_t *cf, ngx_http_proxy_loc_conf_t *conf,
     }
 
 
-    src = headers_merged.elts;
+    src = headers_merged.elts; /* headers_merges里保存数组 conf->headers_source 和 default_headers 里的所有元素 */
     for (i = 0; i < headers_merged.nelts; i++) {
 
         hk = ngx_array_push(&headers_names);

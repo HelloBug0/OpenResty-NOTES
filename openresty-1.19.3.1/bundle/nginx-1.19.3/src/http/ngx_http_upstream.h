@@ -185,7 +185,7 @@ typedef struct {
     ngx_path_t                      *temp_path;
 
     ngx_hash_t                       hide_headers_hash;
-    ngx_array_t                     *hide_headers;
+    ngx_array_t                     *hide_headers; /* ups 响应的头部信息哪些需要隐藏 */
     ngx_array_t                     *pass_headers;
 
     ngx_http_upstream_local_t       *local;
@@ -320,11 +320,11 @@ struct ngx_http_upstream_s {
     ngx_http_upstream_handler_pt     read_event_handler;
     ngx_http_upstream_handler_pt     write_event_handler;
 
-    ngx_peer_connection_t            peer;
+    ngx_peer_connection_t            peer; /* 上游服务器的地址 */
 
     ngx_event_pipe_t                *pipe;
 
-    ngx_chain_t                     *request_bufs;
+    ngx_chain_t                     *request_bufs; /* 保存发送给 upstreams 的请求 */
 
     ngx_output_chain_ctx_t           output;
     ngx_chain_writer_ctx_t           writer;
@@ -346,27 +346,27 @@ struct ngx_http_upstream_s {
 
     ngx_buf_t                        from_client;
 
-    ngx_buf_t                        buffer;
+    ngx_buf_t                        buffer; /* 读取 ups 响应时，缓冲区里保存响应内容，如果 buffer 满，但是未读完响应，则请求出错 */
     off_t                            length;
 
     ngx_chain_t                     *out_bufs;
     ngx_chain_t                     *busy_bufs;
     ngx_chain_t                     *free_bufs;
 
-    ngx_int_t                      (*input_filter_init)(void *data);
-    ngx_int_t                      (*input_filter)(void *data, ssize_t bytes);
+    ngx_int_t                      (*input_filter_init)(void *data); /* 处理 ups 的响应体前的初始化工作 */
+    ngx_int_t                      (*input_filter)(void *data, ssize_t bytes); /* 处理 ups 的响应体，一般这两个方法不需要重写 */
     void                            *input_filter_ctx;
 
 #if (NGX_HTTP_CACHE)
     ngx_int_t                      (*create_key)(ngx_http_request_t *r);
 #endif
-    ngx_int_t                      (*create_request)(ngx_http_request_t *r);
-    ngx_int_t                      (*reinit_request)(ngx_http_request_t *r);
-    ngx_int_t                      (*process_header)(ngx_http_request_t *r);
+    ngx_int_t                      (*create_request)(ngx_http_request_t *r); /* 构造发送给 ups 的请求，设置 ups 服务器的地址，建立 TCP 连接 */
+    ngx_int_t                      (*reinit_request)(ngx_http_request_t *r); /* 和 ps 建立 TCP 连接之后，判断字段 request_sent 是否为1， 如果为1，则调用该函数处理连接断开网络事件。如果该指针为 NULL，不会调用该函数 */
+    ngx_int_t                      (*process_header)(ngx_http_request_t *r); /* 处理 ups 返回的 HTTP 头部，该函数会多次调用，直到该函数返回值不等于 NGX_AGAIN */
     void                           (*abort_request)(ngx_http_request_t *r);
     void                           (*finalize_request)(ngx_http_request_t *r,
-                                         ngx_int_t rc);
-    ngx_int_t                      (*rewrite_redirect)(ngx_http_request_t *r,
+                                         ngx_int_t rc); /* 请求销毁前，都会调用该函数，该函数必须实现，否则函数指针值空指针也会被调用 */
+    ngx_int_t                      (*rewrite_redirect)(ngx_http_request_t *r, /* ngx_http_upstream_process_headers 方法调用 rewrite_direct 函数，处理 ups 响应头域中的 Location 头域 */
                                          ngx_table_elt_t *h, size_t prefix);
     ngx_int_t                      (*rewrite_cookie)(ngx_http_request_t *r,
                                          ngx_table_elt_t *h);
@@ -393,12 +393,12 @@ struct ngx_http_upstream_s {
     unsigned                         cache_status:3;
 #endif
 
-    unsigned                         buffering:1;
+    unsigned                         buffering:1; /* 取值为1：*/
     unsigned                         keepalive:1;
     unsigned                         upgrade:1;
     unsigned                         error:1;
 
-    unsigned                         request_sent:1;
+    unsigned                         request_sent:1; /* 与 upstrems 成功建立TCP连接之后，设置该标志位1，然后开始发送请求到ups */
     unsigned                         request_body_sent:1;
     unsigned                         request_body_blocked:1;
     unsigned                         header_sent:1;

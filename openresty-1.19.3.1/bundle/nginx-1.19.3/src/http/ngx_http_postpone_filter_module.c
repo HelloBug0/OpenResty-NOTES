@@ -3,7 +3,7 @@
  * Copyright (C) Igor Sysoev
  * Copyright (C) Nginx, Inc.
  */
-
+/* 多个子请求时，负责将多个子请求的响应按照执行子请求的顺序，顺序发送给客户端 */
 
 #include <ngx_config.h>
 #include <ngx_core.h>

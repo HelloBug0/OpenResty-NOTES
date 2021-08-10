@@ -199,7 +199,7 @@ main(int argc, char *const *argv)
     ngx_log_t        *log;
     ngx_uint_t        i;
     ngx_cycle_t      *cycle, init_cycle;
-    ngx_conf_dump_t  *cd;
+    ngx_ngx_cycle_tconf_dump_t  *cd;
     ngx_core_conf_t  *ccf;
 
     ngx_debug_init();
