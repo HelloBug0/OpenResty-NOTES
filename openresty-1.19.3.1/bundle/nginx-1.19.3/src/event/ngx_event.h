@@ -28,38 +28,38 @@ typedef struct {
 
 
 struct ngx_event_s {
-    void            *data;
+    void            *data; /* 事件相关的对象，通常data指向ngx_connection_t 连接对象。开启文件异步 IO 时，他可能指向 ngx_event_aio_t 结构体 */
 
-    unsigned         write:1;
+    unsigned         write:1; /* =1 连接可写。通常表示 TCP 连接目前状态可写，连接处于可以发送网络包的状态 */
 
-    unsigned         accept:1;
+    unsigned         accept:1; /* =1 该事件可以建立新的连接。通常情况下，ngx_cycle_t 中的 listening 动态数组中，每一个监听对象 ngx_listening_t 对应的读事件中的 accept 标志位才会是1 */
 
     /* used to detect the stale events in kqueue and epoll */
-    unsigned         instance:1;
+    unsigned         instance:1; /* 用于区分当前事件是否过期，仅事件驱动模块使用，事件消费模块可不用关心。当处理一些事件时，可能会关闭一些连接，而这些连接可能会影响后面要处理的事件，通过该标志可避免处理后面已经过期的事件 */
 
     /*
      * the event was passed or would be passed to a kernel;
      * in aio mode - operation was posted.
      */
-    unsigned         active:1;
+    unsigned         active:1; /* 当前事件的状态，0 不活跃，1 活跃，添加、删除、处理事件时，该标志位的不同对应着不同的处理方式 */
 
-    unsigned         disabled:1;
+    unsigned         disabled:1; /* =1 表示禁用事件，仅在 kqueue 或 rtsig 事件驱动模块中使用 */
 
     /* the ready event; in aio mode 0 means that no operation can be posted */
-    unsigned         ready:1;
+    unsigned         ready:1; /* =1 表示事件准备就绪，允许事件消费模块处理这个事件。在HTTP框架中，经常会检查该标志确定是否可以接收请求或发送响应 */
 
-    unsigned         oneshot:1;
+    unsigned         oneshot:1; /* 仅对kqueue，eventport等模块有意义 */
 
     /* aio operation is complete */
-    unsigned         complete:1;
+    unsigned         complete:1; /* 用于异步AIO事件的处理 */
 
-    unsigned         eof:1;
-    unsigned         error:1;
+    unsigned         eof:1; /* =1 当前处理的字符流已经结束 */
+    unsigned         error:1; /** =1 事件处理过程中出现错误 */
 
-    unsigned         timedout:1;
-    unsigned         timer_set:1;
+    unsigned         timedout:1; /* =1 事件已经超时，提示事件处理模块做超时处理 */
+    unsigned         timer_set:1; /* =1 事件处于定时器中 */
 
-    unsigned         delayed:1;
+    unsigned         delayed:1; 
 
     unsigned         deferred_accept:1;
 
@@ -171,22 +171,22 @@ struct ngx_event_aio_s {
 
 
 typedef struct {
-    ngx_int_t  (*add)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
-    ngx_int_t  (*del)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
+    ngx_int_t  (*add)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags); /* 添加事件到OS提供的事件驱动机制 */
+    ngx_int_t  (*del)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags); /* 从事件驱动机制中删除事件 */
 
-    ngx_int_t  (*enable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
-    ngx_int_t  (*disable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
+    ngx_int_t  (*enable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags); /* 目前事件驱动模块中该方法和add方法功能相同，事件框架不会调用该方法 */
+    ngx_int_t  (*disable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags); /* 目前事件驱动模块中该方法和del方法功能相同，事件框架不会调用该方法 */
 
-    ngx_int_t  (*add_conn)(ngx_connection_t *c);
-    ngx_int_t  (*del_conn)(ngx_connection_t *c, ngx_uint_t flags);
+    ngx_int_t  (*add_conn)(ngx_connection_t *c); /* 向事件驱动机制添加一个连接，这意味着连接上的读写事件都添加到事件驱动机制 */
+    ngx_int_t  (*del_conn)(ngx_connection_t *c, ngx_uint_t flags); /* 移除一个连接的读写事件 */
 
     ngx_int_t  (*notify)(ngx_event_handler_pt handler);
 
     ngx_int_t  (*process_events)(ngx_cycle_t *cycle, ngx_msec_t timer,
-                                 ngx_uint_t flags);
+                                 ngx_uint_t flags); /* 处理分发事件 */
 
-    ngx_int_t  (*init)(ngx_cycle_t *cycle, ngx_msec_t timer);
-    void       (*done)(ngx_cycle_t *cycle);
+    ngx_int_t  (*init)(ngx_cycle_t *cycle, ngx_msec_t timer); /* 初始化事件驱动模块*/
+    void       (*done)(ngx_cycle_t *cycle); /* 退出事件驱动模块前调用的方法 */
 } ngx_event_actions_t;
 
 
@@ -453,10 +453,10 @@ typedef struct {
 typedef struct {
     ngx_str_t              *name;
 
-    void                 *(*create_conf)(ngx_cycle_t *cycle);
-    char                 *(*init_conf)(ngx_cycle_t *cycle, void *conf);
+    void                 *(*create_conf)(ngx_cycle_t *cycle); /* 创建存储配置项参数的结构体 */
+    char                 *(*init_conf)(ngx_cycle_t *cycle, void *conf); /* 初始化当前模块感兴趣的配置项 */
 
-    ngx_event_actions_t     actions;
+    ngx_event_actions_t     actions; /* 对于事件驱动机制，每个模块需要实现的10个抽象方法 */
 } ngx_event_module_t;
 
 

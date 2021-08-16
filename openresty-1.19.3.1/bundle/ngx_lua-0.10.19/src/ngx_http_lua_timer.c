@@ -198,7 +198,7 @@ ngx_http_lua_ngx_timer_helper(lua_State *L, int every)
             saved_c = ngx_cycle->files[0];
         }
 
-        lmcf->watcher = ngx_get_connection(0, ngx_cycle->log);
+        lmcf->watcher = ngx_get_connection(0, ngx_cycle->log); /* 获得一个空闲connection */
 
         if (ngx_cycle->files) {
             ngx_cycle->files[0] = saved_c;
@@ -230,7 +230,7 @@ ngx_http_lua_ngx_timer_helper(lua_State *L, int every)
 
     dd("stack top: %d", lua_gettop(L));
 
-    lua_xmove(vm, L, 1);    /* move coroutine from main thread to L */
+    lua_xmove(vm, L, 1);    /* move coroutine from main thread to L 将协程从vm移到L中 */
 
     lua_pop(vm, 1);  /* pop coroutines */
 

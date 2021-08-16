@@ -652,7 +652,7 @@ ngx_http_lua_new_cached_thread(lua_State *L, lua_State **out_co,
         lua_pushlightuserdata(L, ngx_http_lua_lightudata_mask(
                               coroutines_key));
         lua_rawget(L, LUA_REGISTRYINDEX);
-        co = lua_newthread(L);
+        co = lua_newthread(L); /* 在同一个虚拟机上创建另一个协程执行环境 */
         lua_pushvalue(L, -1);
         co_ref = luaL_ref(L, -3);
 
