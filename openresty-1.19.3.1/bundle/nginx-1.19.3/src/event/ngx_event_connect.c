@@ -39,7 +39,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     type = (pc->type ? pc->type : SOCK_STREAM);
 
 #if (NGX_HAVE_SOCKET_CLOEXEC)
-    s = ngx_socket(pc->sockaddr->sa_family, type | SOCK_CLOEXEC, 0);
+    s = ngx_socket(pc->sockaddr->sa_family, type | SOCK_CLOEXEC, 0); /* 创建非阻塞的socket连接 */
 
 #else
     s = ngx_socket(pc->sockaddr->sa_family, type, 0);
@@ -57,7 +57,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     }
 
 
-    c = ngx_get_connection(s, pc->log);
+    c = ngx_get_connection(s, pc->log); /* 获得ngx_connection_t结构体 */
 
     if (c == NULL) {
         if (ngx_close_socket(s) == -1) {
@@ -218,7 +218,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, pc->log, 0,
                    "connect to %V, fd:%d #%uA", pc->name, s, c->number);
 
-    rc = connect(s, pc->sockaddr, pc->socklen);
+    rc = connect(s, pc->sockaddr, pc->socklen); /* 建立TCP连接 */
 
     if (rc == -1) {
         err = ngx_socket_errno;

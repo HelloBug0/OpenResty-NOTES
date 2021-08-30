@@ -1006,7 +1006,7 @@ ngx_http_proxy_handler(ngx_http_request_t *r)
         r->request_body_no_buffering = 1;
     }
 
-    rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init);
+    rc = ngx_http_read_client_request_body(r, ngx_http_upstream_init); /* 读取完请求体之后，调用函数 ngx_http_upstream_init 启动upstream机制*/
 
     if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
