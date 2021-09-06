@@ -240,7 +240,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 
 
     for ( ;; ) {
-        rc = ngx_conf_read_token(cf);
+        rc = ngx_conf_read_token(cf); /* 解析配置指令 */
 
         /*
          * ngx_conf_read_token() may return
@@ -316,7 +316,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
         }
 
 
-        rc = ngx_conf_handler(cf, rc);
+        rc = ngx_conf_handler(cf, rc); /* 处理配置指令 */
 
         if (rc == NGX_ERROR) {
             goto failed;
@@ -460,7 +460,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
                 }
             }
 
-            rv = cmd->set(cf, cmd, conf);
+            rv = cmd->set(cf, cmd, conf); /* 调用每个指令的配置解析函数 cf是全局cf，cmd是当前配置的指令内容，conf是将解析结果保存在conf中 */
 
             if (rv == NGX_CONF_OK) {
                 return NGX_OK;

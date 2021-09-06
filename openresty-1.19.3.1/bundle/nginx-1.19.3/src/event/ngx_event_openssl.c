@@ -1601,7 +1601,7 @@ ngx_ssl_set_session(ngx_connection_t *c, ngx_ssl_session_t *session)
 
 
 ngx_int_t
-ngx_ssl_handshake(ngx_connection_t *c)
+ngx_ssl_handshake(ngx_connection_t *c) /* 函数：ngx_http_ssl_handshake src/http/ngx_http_request.c:754 调用该函数 */
 {
     int        n, sslerr;
     ngx_err_t  err;
@@ -1619,7 +1619,7 @@ ngx_ssl_handshake(ngx_connection_t *c)
 
     ngx_ssl_clear_error(c->log);
 
-    n = SSL_do_handshake(c->ssl->connection);
+    n = SSL_do_handshake(c->ssl->connection); /* 若配置ssl_certificate_by_lua*，最终会调用到 ngx_http_lua_ssl_cert_handler */
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, c->log, 0, "SSL_do_handshake: %d", n);
 

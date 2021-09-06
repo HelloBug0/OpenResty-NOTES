@@ -254,7 +254,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
 
     delta = ngx_current_msec; /* 当前时间 毫秒数 */
 
-    (void) ngx_process_events(cycle, timer, flags); /* 等待事件发生，并进行处理（立即处理或者先缓存所有接收到的事件） */
+    (void) ngx_process_events(cycle, timer, flags); /* 等待事件发生，并进行处理（立即处理或者先缓存所有接收到的事件） 可为函数：ngx_epoll_process_events */
 
     delta = ngx_current_msec - delta; /* 此时delta取值为执行函数ngx_process_events花费的时间 */
 

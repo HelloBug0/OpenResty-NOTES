@@ -1345,7 +1345,7 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
 {
     ngx_http_lua_block_parser_ctx_t     ctx;
 
-    int               level = 1;
+    int               level = 1; /* level判断左右花括号是否配对 */
     char             *rv;
     u_char           *p;
     size_t            len;
@@ -1358,7 +1358,7 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
         parse_param,
     } type;
 
-    if (cf->conf_file->file.fd != NGX_INVALID_FILE) {
+    if (cf->conf_file->file.fd != NGX_INVALID_FILE) { /* nginx的配置可以通过配置文件nginx.conf配置，也可以通过启动参数配置，根据该 fd 是否有效，判断当前指令是文件配置的，还是启动参数配置的 */
 
         type = parse_block;
 
@@ -1366,7 +1366,7 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
         type = parse_param;
     }
 
-    saved = cf->args;
+    saved = cf->args; /* 原来的配置参数备份 */
 
     cf->args = ngx_array_create(cf->temp_pool, 4, sizeof(ngx_str_t));
     if (cf->args == NULL) {
@@ -1374,14 +1374,14 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
     }
 
     ctx.token_len = 0;
-    start_line = cf->conf_file->line;
+    start_line = cf->conf_file->line; /* 当前配置指令的行号 */
 
     dd("init start line: %d", (int) start_line);
 
     ctx.start_line = start_line;
 
     for ( ;; ) {
-        rc = ngx_http_lua_conf_read_lua_token(cf, &ctx);
+        rc = ngx_http_lua_conf_read_lua_token(cf, &ctx);  /* 函数作用：读取lua代码块，保存在cf->args中。如init_by_lua_block中的lua代码。具体可以解析哪些配置块，可参考一下对函数返回值的判断 */
 
         dd("parser start line: %d", (int) start_line);
 
@@ -1390,7 +1390,7 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
         case NGX_ERROR:
             goto done;
 
-        case FOUND_LEFT_CURLY:
+        case FOUND_LEFT_CURLY: /* 找到了左花括号 */
 
             ctx.start_line = cf->conf_file->line;
 
@@ -1405,7 +1405,7 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
             dd("seen block start: level=%d", (int) level);
             break;
 
-        case FOUND_RIGHT_CURLY:
+        case FOUND_RIGHT_CURLY: /* 找到了右花括号 */
 
             level--;
             dd("seen block done: level=%d", (int) level);
@@ -1419,12 +1419,12 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
             }
 
             if (level == 0) {
-                ngx_http_lua_assert(cf->handler);
+                ngx_http_lua_assert(cf->handler); /* 必须要有处理函数 */
 
                 src = cf->args->elts;
 
                 for (len = 0, i = 0; i < cf->args->nelts; i++) {
-                    len += src[i].len;
+                    len += src[i].len; /* 统计所有代码块的长度 */
                 }
 
                 dd("saved nelts: %d", (int) saved->nelts);
@@ -1433,30 +1433,30 @@ ngx_http_lua_conf_lua_block_parse(ngx_conf_t *cf, ngx_command_t *cmd)
                 ngx_http_lua_assert(saved->nelts == 1);
 #endif
 
-                dst = ngx_array_push(saved);
+                dst = ngx_array_push(saved); /* 从原来的数组中获得一个数组元素，用来保存lua代码块的地址 */
                 if (dst == NULL) {
                     return NGX_CONF_ERROR;
                 }
 
-                dst->len = len;
+                dst->len = len; /* lua代码块的长度 */
                 dst->len--;  /* skip the trailing '}' block terminator */
 
-                p = ngx_palloc(cf->pool, len);
+                p = ngx_palloc(cf->pool, len); /* p指向的内存用来保存的真正的lua代码块的内容 */
                 if (p == NULL) {
                     return NGX_CONF_ERROR;
                 }
 
                 dst->data = p;
 
-                for (i = 0; i < cf->args->nelts; i++) {
+                for (i = 0; i < cf->args->nelts; i++) { /* 遍历数组，该数组临时保存配置中的代码块 */
                     p = ngx_copy(p, src[i].data, src[i].len);
                 }
 
                 p[-1] = '\0';  /* override the last '}' char to null */
 
-                cf->args = saved;
+                cf->args = saved; /* 指针恢复 */
 
-                rv = (*cf->handler)(cf, cmd, cf->handler_conf);
+                rv = (*cf->handler)(cf, cmd, cf->handler_conf); /* 执行cf->handler函数，如ssl_certificate_by_lua_block配置的执行函数时ngx_http_lua_ssl_cert_by_lua() */
                 if (rv == NGX_CONF_OK) {
                     goto done;
                 }
@@ -1502,7 +1502,7 @@ done:
 }
 
 
-static ngx_int_t
+static ngx_int_t /* 函数作用：读取lua代码块，保存在cf->args中。如init_by_lua_block中的lua代码；右花括号部分配置等。具体可以解析哪些配置块，可参考一下对函数返回值的判断 */
 ngx_http_lua_conf_read_lua_token(ngx_conf_t *cf,
     ngx_http_lua_block_parser_ctx_t *ctx)
 {
@@ -1526,13 +1526,13 @@ ngx_http_lua_conf_read_lua_token(ngx_conf_t *cf,
 #if (nginx_version >= 1009002)
     dump = cf->conf_file->dump;
 #endif
-    start = b->pos;
+    start = b->pos; /* start保存当前配置解析的首地址，如左花括号、右花括号、init_by_lua_block/ssl_certificate_by_lua_block等的代码块的首地址 */
     start_line = cf->conf_file->line;
-    buf_size = b->end - b->start;
+    buf_size = b->end - b->start; /* centos7 64位机器 buf_size = 4096*/
 
     dd("lexer start line: %d", (int) start_line);
 
-    file_size = ngx_file_size(&cf->conf_file->file.info);
+    file_size = ngx_file_size(&cf->conf_file->file.info); /* 从nginx.conf文件属性中获得文件大小？原理TODO */
 
     for ( ;; ) {
 
@@ -1733,7 +1733,7 @@ ngx_http_lua_conf_read_lua_token(ngx_conf_t *cf,
         }
 
         b->pos += ovec[1];
-        ctx->token_len = ovec[1] - ovec[0];
+        ctx->token_len = ovec[1] - ovec[0]; /* ctx->token_len中保存？的长度 */
 
         break;
     }
@@ -1748,7 +1748,7 @@ ngx_http_lua_conf_read_lua_token(ngx_conf_t *cf,
         return NGX_ERROR;
     }
 
-    len = b->pos - start;
+    len = b->pos - start; /* 当前配置块的长度，lua代码块的长度，右花括号占用配置块的长度 */
     ngx_memcpy(word->data, start, len);
     word->len = len;
 

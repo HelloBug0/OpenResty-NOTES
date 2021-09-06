@@ -362,7 +362,7 @@ ngx_http_lua_gen_chunk_cache_key(ngx_conf_t *cf, const char *tag,
     p = ngx_http_lua_digest_hex(p, src, src_len);
     *p = '\0';
 
-    return out;
+    return out; /* 生成一个key值，如：ssl_certificate_by_lua_nhli_b7a5dc860ea8a0d7a726f48695df6ac0*/
 }
 
 

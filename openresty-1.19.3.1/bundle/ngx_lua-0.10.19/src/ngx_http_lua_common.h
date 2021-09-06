@@ -303,8 +303,8 @@ union ngx_http_lua_srv_conf_u {
 #if (NGX_HTTP_SSL)
     struct {
         ngx_http_lua_srv_conf_handler_pt     ssl_cert_handler;
-        ngx_str_t                            ssl_cert_src;
-        u_char                              *ssl_cert_src_key;
+        ngx_str_t                            ssl_cert_src; /* lua代码 */
+        u_char                              *ssl_cert_src_key; /* lua代码缓存用的key值 */
         int                                  ssl_cert_src_ref;
 
         ngx_http_lua_srv_conf_handler_pt     ssl_sess_store_handler;

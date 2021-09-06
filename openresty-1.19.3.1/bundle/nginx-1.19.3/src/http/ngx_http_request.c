@@ -372,7 +372,7 @@ ngx_http_init_connection(ngx_connection_t *c)
 
 
 static void
-ngx_http_wait_request_handler(ngx_event_t *rev)
+ngx_http_wait_request_handler(ngx_event_t *rev) /* 该函数是事件处理句柄：ngx_epoll_process_events src/event/modules/ngx_epoll_module.c:903 位置调用该函数 */
 {
     u_char                    *p;
     size_t                     size;
@@ -1038,7 +1038,7 @@ failed:
 
 
 static void
-ngx_http_process_request_line(ngx_event_t *rev)
+ngx_http_process_request_line(ngx_event_t *rev) /* 调用该函数的位置：ngx_http_wait_request_handler src/http/ngx_http_request.c:501 */
 {
     ssize_t              n;
     ngx_int_t            rc, rv;
@@ -1151,7 +1151,7 @@ ngx_http_process_request_line(ngx_event_t *rev)
             c->log->action = "reading client request headers";
 
             rev->handler = ngx_http_process_request_headers;
-            ngx_http_process_request_headers(rev);
+            ngx_http_process_request_headers(rev); /* 调用 ngx_http_process_host src/http/ngx_http_request.c:1761 */
 
             break;
         }
@@ -1452,7 +1452,7 @@ ngx_http_process_request_headers(ngx_event_t *rev)
             hh = ngx_hash_find(&cmcf->headers_in_hash, h->hash,
                                h->lowcase_key, h->key.len);
 
-            if (hh && hh->handler(r, h, hh->offset) != NGX_OK) {
+            if (hh && hh->handler(r, h, hh->offset) != NGX_OK) { /* handler可以是：ngx_http_process_host src/http/ngx_http_request.c:1761 */
                 break;
             }
 
@@ -1758,7 +1758,7 @@ ngx_http_process_unique_header_line(ngx_http_request_t *r, ngx_table_elt_t *h,
 
 
 static ngx_int_t
-ngx_http_process_host(ngx_http_request_t *r, ngx_table_elt_t *h,
+ngx_http_process_host(ngx_http_request_t *r, ngx_table_elt_t *h, /* 处理请求中的Host头域，并根据Host查找server */
     ngx_uint_t offset)
 {
     ngx_int_t  rc;
@@ -2258,7 +2258,7 @@ ngx_http_set_virtual_server(ngx_http_request_t *r, ngx_str_t *host)
 
 static ngx_int_t
 ngx_http_find_virtual_server(ngx_connection_t *c,
-    ngx_http_virtual_names_t *virtual_names, ngx_str_t *host,
+    ngx_http_virtual_names_t *virtual_names, ngx_str_t *host, /* host 为请求头域Host值 */
     ngx_http_request_t *r, ngx_http_core_srv_conf_t **cscfp)
 {
     ngx_http_core_srv_conf_t  *cscf;

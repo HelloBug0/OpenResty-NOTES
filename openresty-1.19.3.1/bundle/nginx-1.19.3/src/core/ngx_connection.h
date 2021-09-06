@@ -21,7 +21,7 @@ struct ngx_listening_s {
     struct sockaddr    *sockaddr;
     socklen_t           socklen;    /* size of sockaddr */
     size_t              addr_text_max_len; /* addr_text 分配内存大小 */
-    ngx_str_t           addr_text; /* 字符串形式表示的IP地址 */
+    ngx_str_t           addr_text; /* 字符串形式表示的IP地址，如：$29 = {len = 11, data = 0x8be900 "0.0.0.0:443"} */
 
     int                 type; /* 套接字类型，如type=SOCK_STREAM时，表示TCP */
 

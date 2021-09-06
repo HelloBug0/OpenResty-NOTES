@@ -781,7 +781,7 @@ ngx_epoll_notify(ngx_event_handler_pt handler)
 
 
 static ngx_int_t
-ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
+ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags) /* 进程事件循环里调用该函数：ngx_process_events_and_timers at src/event/ngx_event.c:257 */
 {
     int                events;
     uint32_t           revents;
@@ -898,7 +898,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
                 ngx_post_event(rev, queue);
 
             } else {
-                rev->handler(rev);
+                rev->handler(rev); /* 句柄可能是：ngx_http_wait_request_handler */
             }
         }
 

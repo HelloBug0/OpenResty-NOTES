@@ -60,7 +60,7 @@ ngx_http_lua_ssl_cert_handler_file(ngx_http_request_t *r,
 
 
 ngx_int_t
-ngx_http_lua_ssl_cert_handler_inline(ngx_http_request_t *r,
+ngx_http_lua_ssl_cert_handler_inline(ngx_http_request_t *r, /* fake r */
     ngx_http_lua_srv_conf_t *lscf, lua_State *L)
 {
     ngx_int_t           rc;
@@ -82,22 +82,22 @@ ngx_http_lua_ssl_cert_handler_inline(ngx_http_request_t *r,
 }
 
 
-char *
-ngx_http_lua_ssl_cert_by_lua_block(ngx_conf_t *cf, ngx_command_t *cmd,
-    void *conf)
+char * /* 函数调用位置：src/core/ngx_conf_file.c:465 */
+ngx_http_lua_ssl_cert_by_lua_block(ngx_conf_t *cf, ngx_command_t *cmd, /* cmd 当前配置指令信息，name = ssl_certificate_by_lua_block */
+    void *conf) /* cf 用来保存当前指令产生的配置 */
 {
     char        *rv;
     ngx_conf_t   save;
 
     save = *cf;
     cf->handler = ngx_http_lua_ssl_cert_by_lua;
-    cf->handler_conf = conf;
+    cf->handler_conf = conf; /* 这里的handler_con参数是上面cf->handler的第三个参数，即ngx_http_lua_srv_conf_t */
 
-    rv = ngx_http_lua_conf_lua_block_parse(cf, cmd);
+    rv = ngx_http_lua_conf_lua_block_parse(cf, cmd); /* 在该函数中在配置解析完成之后，上面的cf->handler=ngx_http_lua_ssl_cert_by_lua函数会被调用 */
 
-    *cf = save;
+    *cf = save; /* cf使用结束之后，恢复原来的样子 */
 
-    return rv;
+    return rv; /* 函数 ngx_http_lua_conf_lua_block_parse 和 ngx_http_lua_ssl_cert_by_lua 函数执行结束之后，函数返回，返回位置：src/core/ngx_conf_file.c:465 */
 }
 
 
@@ -135,9 +135,9 @@ ngx_http_lua_ssl_cert_by_lua(ngx_conf_t *cf, ngx_command_t *cmd,
 
     value = cf->args->elts;
 
-    lscf->srv.ssl_cert_handler = (ngx_http_lua_srv_conf_handler_pt) cmd->post;
+    lscf->srv.ssl_cert_handler = (ngx_http_lua_srv_conf_handler_pt) cmd->post; /* 保存处理请求过程中，当执行到ssl_certificate阶段的时候执行的函数 */
 
-    if (cmd->post == ngx_http_lua_ssl_cert_handler_file) {
+    if (cmd->post == ngx_http_lua_ssl_cert_handler_file) { /* if 里面的分支表示ssl_certificate阶段执行的代码保存在文件中，即ssl_certificate_by_lua_file指令 */
         /* Lua code in an external file */
         name = ngx_http_lua_rebase_path(cf->pool, value[1].data,
                                         value[1].len);
@@ -154,7 +154,7 @@ ngx_http_lua_ssl_cert_by_lua(ngx_conf_t *cf, ngx_command_t *cmd,
         lscf->srv.ssl_cert_src.data = name;
         lscf->srv.ssl_cert_src.len = ngx_strlen(name);
 
-    } else {
+    } else { /* else里面的分支表示ssl_certificate阶段执行的代码已经保存在内存中，即即ssl_certificate_by_lua_block指令 */
         cache_key = ngx_http_lua_gen_chunk_cache_key(cf,
                                                      "ssl_certificate_by_lua",
                                                      value[1].data,
@@ -176,7 +176,7 @@ ngx_http_lua_ssl_cert_by_lua(ngx_conf_t *cf, ngx_command_t *cmd,
 
 
 int
-ngx_http_lua_ssl_cert_handler(ngx_ssl_conn_t *ssl_conn, void *data)
+ngx_http_lua_ssl_cert_handler(ngx_ssl_conn_t *ssl_conn, void *data) /* 由src/event/ngx_event_openssl.c:1622 ngx_ssl_handshake 一步步调用到该函数 */
 {
     lua_State                       *L;
     ngx_int_t                        rc;
@@ -219,7 +219,7 @@ ngx_http_lua_ssl_cert_handler(ngx_ssl_conn_t *ssl_conn, void *data)
     ngx_reusable_connection(c, 0);
 #endif
 
-    hc = c->data;
+    hc = c->data; /* c->data类型：ngx_http_connection_t */
 
     fc = ngx_http_lua_create_fake_connection(NULL);
     if (fc == NULL) {
@@ -229,8 +229,8 @@ ngx_http_lua_ssl_cert_handler(ngx_ssl_conn_t *ssl_conn, void *data)
     fc->log->handler = ngx_http_lua_log_ssl_cert_error;
     fc->log->data = fc;
 
-    fc->addr_text = c->addr_text;
-    fc->listening = c->listening;
+    fc->addr_text = c->addr_text; /* 客户端和nginx建立的四层IP地址 */
+    fc->listening = c->listening; /* 监听的socket信息，包括IP地址、端口号、socketaddr等 */
 
     r = ngx_http_lua_create_fake_request(fc);
     if (r == NULL) {
@@ -243,7 +243,7 @@ ngx_http_lua_ssl_cert_handler(ngx_ssl_conn_t *ssl_conn, void *data)
 
     fc->log->file = c->log->file;
     fc->log->log_level = c->log->log_level;
-    fc->ssl = c->ssl;
+    fc->ssl = c->ssl; /* c->ssl类型：ngx_ssl_connection_t */
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
@@ -295,7 +295,7 @@ ngx_http_lua_ssl_cert_handler(ngx_ssl_conn_t *ssl_conn, void *data)
         goto failed;
     }
 
-    rc = lscf->srv.ssl_cert_handler(r, lscf, L);
+    rc = lscf->srv.ssl_cert_handler(r, lscf, L); /* 这里的函数是 /ngx_lua-0.10.19/src/ngx_http_lua_ssl_certby.c:72 ngx_http_lua_ssl_cert_handler_inline。在该函数中会finalize这个request */
 
     if (rc >= NGX_OK || rc == NGX_ERROR) {
         cctx->done = 1;

@@ -330,7 +330,7 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     /* optimize the lists of ports, addresses and server names */
 
-    if (ngx_http_optimize_servers(cf, cmcf, cmcf->ports) != NGX_OK) {
+    if (ngx_http_optimize_servers(cf, cmcf, cmcf->ports) != NGX_OK) { /*cmcf->ports 保存所有的监听地址和端口号信息 */
         return NGX_CONF_ERROR;
     }
 
@@ -1158,7 +1158,7 @@ ngx_http_add_listen(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
     }
 
     sa = lsopt->sockaddr;
-    p = ngx_inet_get_port(sa);
+    p = ngx_inet_get_port(sa); /* 获得监听的端口号 */
 
     port = cmcf->ports->elts;
     for (i = 0; i < cmcf->ports->nelts; i++) {
@@ -1169,7 +1169,7 @@ ngx_http_add_listen(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 
         /* a port is already in the port list */
 
-        return ngx_http_add_addresses(cf, cscf, &port[i], lsopt);
+        return ngx_http_add_addresses(cf, cscf, &port[i], lsopt); /* 如果监听的端口和IP地址相同，会走该函数 */
     }
 
     /* add a port to the port list */
@@ -1183,7 +1183,7 @@ ngx_http_add_listen(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
     port->port = p;
     port->addrs.elts = NULL;
 
-    return ngx_http_add_address(cf, cscf, port, lsopt);
+    return ngx_http_add_address(cf, cscf, port, lsopt); /* 将cscf、lsop初始化到port变量中 */
 }
 
 
@@ -1397,7 +1397,7 @@ ngx_http_optimize_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
          * configuration as a default server for given address:port
          */
 
-        addr = port[p].addrs.elts;
+        addr = port[p].addrs.elts; /* 每一个port[p]都会 ngx_http_conf_port_t 类型 */
         for (a = 0; a < port[p].addrs.nelts; a++) {
 
             if (addr[a].servers.nelts > 1
@@ -1624,7 +1624,7 @@ ngx_http_cmp_dns_wildcards(const void *one, const void *two)
 
 
 static ngx_int_t
-ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
+ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port) /* 利用port->addrs中的信息初始化 cf->cycle->listening 数组 */
 {
     ngx_uint_t                 i, last, bind_wildcard;
     ngx_listening_t           *ls;
@@ -1682,7 +1682,7 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
             break;
 #endif
         default: /* AF_INET */
-            if (ngx_http_add_addrs(cf, hport, addr) != NGX_OK) {
+            if (ngx_http_add_addrs(cf, hport, addr) != NGX_OK) { /* 利用addr初始化hport，即ls->servers->addrs*/
                 return NGX_ERROR;
             }
             break;
@@ -1703,7 +1703,7 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
     ngx_http_core_loc_conf_t  *clcf;
     ngx_http_core_srv_conf_t  *cscf;
 
-    ls = ngx_create_listening(cf, addr->opt.sockaddr, addr->opt.socklen);
+    ls = ngx_create_listening(cf, addr->opt.sockaddr, addr->opt.socklen); /* 根据addr创建一个ngx_listening_t，从数组&cf->cycle->listening中取一个ls */
     if (ls == NULL) {
         return NULL;
     }

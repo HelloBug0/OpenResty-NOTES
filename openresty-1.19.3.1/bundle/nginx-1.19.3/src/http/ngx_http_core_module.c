@@ -2833,7 +2833,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
         return NGX_CONF_ERROR;
     }
 
-    for (i = 0; cf->cycle->modules[i]; i++) {
+    for (i = 0; cf->cycle->modules[i]; i++) { /* 为所有HTTP模块申请srv_conf内存和loc_conf内存，并初始化。即调用每个HTTP模块的 create_srv_conf 和 create_loc_conf 函数 */
         if (cf->cycle->modules[i]->type != NGX_HTTP_MODULE) {
             continue;
         }
@@ -2873,7 +2873,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
         return NGX_CONF_ERROR;
     }
 
-    *cscfp = cscf;
+    *cscfp = cscf; /* 将当前ngx_http_core_srv_conf_t 保存在 cmcf->servers数组中 */
 
 
     /* parse inside server{} */
@@ -2882,7 +2882,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
     cf->ctx = ctx;
     cf->cmd_type = NGX_HTTP_SRV_CONF;
 
-    rv = ngx_conf_parse(cf, NULL);
+    rv = ngx_conf_parse(cf, NULL); /* 解析 server{} 中的配置 */
 
     *cf = pcf;
 
@@ -3856,7 +3856,7 @@ ngx_http_core_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 
 
 static char *
-ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* listen指令的解析函数 */
 {
     ngx_http_core_srv_conf_t *cscf = conf;
 
@@ -3871,11 +3871,11 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     ngx_memzero(&u, sizeof(ngx_url_t));
 
-    u.url = value[1];
+    u.url = value[1]; /* eg. value[1] = 172.17.0.7:443 listen配置值 */
     u.listen = 1;
     u.default_port = 80;
 
-    if (ngx_parse_url(cf->pool, &u) != NGX_OK) {
+    if (ngx_parse_url(cf->pool, &u) != NGX_OK) { /* 判断指令配置是否合法，并通过地址解析初始化 u 变量 */
         if (u.err) {
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                "%s in \"%V\" of the \"listen\" directive",
@@ -4201,7 +4201,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         lsopt.addr_text = u.addrs[n].name;
         lsopt.wildcard = ngx_inet_wildcard(lsopt.sockaddr);
 
-        if (ngx_http_add_listen(cf, cscf, &lsopt) != NGX_OK) {
+        if (ngx_http_add_listen(cf, cscf, &lsopt) != NGX_OK) { /* 将cscf和lsopt变量初始化到cmcf->ports*/
             return NGX_CONF_ERROR;
         }
     }
@@ -4211,7 +4211,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 
 static char *
-ngx_http_core_server_name(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_http_core_server_name(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* cmd->name = "server_name" 解析指令server_name，将指令取值保存在conf->server_names数组中 */
 {
     ngx_http_core_srv_conf_t *cscf = conf;
 
@@ -4240,7 +4240,7 @@ ngx_http_core_server_name(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
                                &value[i]);
         }
 
-        sn = ngx_array_push(&cscf->server_names);
+        sn = ngx_array_push(&cscf->server_names); /* 一个server里可以配置多个server_name，所以这里使用数组保存多个server_name */
         if (sn == NULL) {
             return NGX_CONF_ERROR;
         }
