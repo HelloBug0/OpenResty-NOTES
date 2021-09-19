@@ -335,7 +335,7 @@ ngx_log_init(u_char *prefix)
     ngx_log.file = &ngx_log_file;
     ngx_log.log_level = NGX_LOG_NOTICE;
 
-    name = (u_char *) NGX_ERROR_LOG_PATH;
+    name = (u_char *) NGX_ERROR_LOG_PATH; /* 指向字符串：logs/error.log */
 
     /*
      * we use ngx_strlen() here since BCC warns about
@@ -362,7 +362,7 @@ ngx_log_init(u_char *prefix)
 
         } else {
 #ifdef NGX_PREFIX
-            prefix = (u_char *) NGX_PREFIX;
+            prefix = (u_char *) NGX_PREFIX; /* 指向字符串：/path/to/openresty/nginx/ */
             plen = ngx_strlen(prefix);
 #else
             plen = 0;
@@ -377,17 +377,17 @@ ngx_log_init(u_char *prefix)
 
             p = ngx_cpymem(name, prefix, plen);
 
-            if (!ngx_path_separator(*(p - 1))) {
+            if (!ngx_path_separator(*(p - 1))) { /* 判断prefix是否是/结尾，如果不是则添加/ */
                 *p++ = '/';
             }
 
             ngx_cpystrn(p, (u_char *) NGX_ERROR_LOG_PATH, nlen + 1);
 
-            p = name;
+            p = name; /* p取值为：/path/to/openresty/nginx/logs/error.log */
         }
     }
 
-    ngx_log_file.fd = ngx_open_file(name, NGX_FILE_APPEND,
+    ngx_log_file.fd = ngx_open_file(name, NGX_FILE_APPEND, /* 打开日志文件 */
                                     NGX_FILE_CREATE_OR_OPEN,
                                     NGX_FILE_DEFAULT_ACCESS);
 
@@ -404,7 +404,7 @@ ngx_log_init(u_char *prefix)
         ngx_log_file.fd = ngx_stderr;
     }
 
-    if (p) {
+    if (p) { /* 释放日志文件名使用的内存 */
         ngx_free(p);
     }
 

@@ -22,14 +22,14 @@ typedef struct {
 
 
 typedef struct {
-    ngx_int_t   (*preconfiguration)(ngx_conf_t *cf);
-    ngx_int_t   (*postconfiguration)(ngx_conf_t *cf);
+    ngx_int_t   (*preconfiguration)(ngx_conf_t *cf); /* 在读取配置文件中的该模块的配置项之前调用，即还没读取配置指令之前 */
+    ngx_int_t   (*postconfiguration)(ngx_conf_t *cf); /* 在读取配置文件中的该模块的配置项之后调用，即还读取配置指令之后 */
 
     void       *(*create_main_conf)(ngx_conf_t *cf);
-    char       *(*init_main_conf)(ngx_conf_t *cf, void *conf);
+    char       *(*init_main_conf)(ngx_conf_t *cf, void *conf); /* 在执行所有模块的配置合并之前执行该函数 */
 
     void       *(*create_srv_conf)(ngx_conf_t *cf);
-    char       *(*merge_srv_conf)(ngx_conf_t *cf, void *prev, void *conf);
+    char       *(*merge_srv_conf)(ngx_conf_t *cf, void *prev, void *conf); /* 每个模块自己决定是否实现该函数进行合并，自己决定合并方式 */
 
     void       *(*create_loc_conf)(ngx_conf_t *cf);
     char       *(*merge_loc_conf)(ngx_conf_t *cf, void *prev, void *conf);

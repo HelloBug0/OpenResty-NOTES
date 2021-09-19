@@ -16,19 +16,19 @@
 typedef struct ngx_list_part_s  ngx_list_part_t;
 
 struct ngx_list_part_s {
-    void             *elts;
-    ngx_uint_t        nelts;
+    void             *elts; /* 指向数组的起始地址 */
+    ngx_uint_t        nelts; /* */
     ngx_list_part_t  *next;
 };
 
 
-typedef struct {
-    ngx_list_part_t  *last;
-    ngx_list_part_t   part;
-    size_t            size;
-    ngx_uint_t        nalloc;
+typedef struct { /* 链表中的每个元素都是一个数组 */
+    ngx_list_part_t  *last; /* 链表的最后一个数组 */
+    ngx_list_part_t   part; /* 链表的首个数组 */
+    size_t            size; /* 每个数组的大小都要<=size */
+    ngx_uint_t        nalloc; /* 每个数组最多可以存储多少个数据 */
     ngx_pool_t       *pool;
-} ngx_list_t;
+} ngx_list_t; 
 
 
 ngx_list_t *ngx_list_create(ngx_pool_t *pool, ngx_uint_t n, size_t size);

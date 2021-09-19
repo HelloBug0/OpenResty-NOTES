@@ -84,7 +84,7 @@ ngx_http_lua_ssl_cert_handler_inline(ngx_http_request_t *r, /* fake r */
 
 char * /* 函数调用位置：src/core/ngx_conf_file.c:465 */
 ngx_http_lua_ssl_cert_by_lua_block(ngx_conf_t *cf, ngx_command_t *cmd, /* cmd 当前配置指令信息，name = ssl_certificate_by_lua_block */
-    void *conf) /* cf 用来保存当前指令产生的配置 */
+    void *conf) /* conf 用来保存当前指令产生的配置，conf变量类型：ngx_http_lua_srv_conf_t */
 {
     char        *rv;
     ngx_conf_t   save;

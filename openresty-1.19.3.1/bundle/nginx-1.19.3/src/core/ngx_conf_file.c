@@ -190,21 +190,21 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 
         cf->conf_file = &conf_file;
 
-        if (ngx_fd_info(fd, &cf->conf_file->file.info) == NGX_FILE_ERROR) {
+        if (ngx_fd_info(fd, &cf->conf_file->file.info) == NGX_FILE_ERROR) { /* 根据fd，将获得的文件相关信息保存在cf->conf_file->file.info中，如文件大小、创建时间、修改时间 */
             ngx_log_error(NGX_LOG_EMERG, cf->log, ngx_errno,
                           ngx_fd_info_n " \"%s\" failed", filename->data);
         }
 
         cf->conf_file->buffer = &buf;
 
-        buf.start = ngx_alloc(NGX_CONF_BUFFER, cf->log);
+        buf.start = ngx_alloc(NGX_CONF_BUFFER, cf->log); /* 内存起始位置，需要手动释放 */
         if (buf.start == NULL) {
             goto failed;
         }
 
-        buf.pos = buf.start;
-        buf.last = buf.start;
-        buf.end = buf.last + NGX_CONF_BUFFER;
+        buf.pos = buf.start; /* 内存可用起始位置 */
+        buf.last = buf.start; /* 内存可用结束位置 */
+        buf.end = buf.last + NGX_CONF_BUFFER; /* 内存结束位置 */
         buf.temporary = 1;
 
         cf->conf_file->file.fd = fd;
@@ -230,17 +230,17 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
             cf->conf_file->dump = NULL;
         }
 
-    } else if (cf->conf_file->file.fd != NGX_INVALID_FILE) {
+    } else if (cf->conf_file->file.fd != NGX_INVALID_FILE) { /* 文件已经打开，解析指令解析的是配置块 */
 
         type = parse_block;
 
     } else {
-        type = parse_param;
+        type = parse_param; /* 解析启动命令中的指令 */
     }
 
 
     for ( ;; ) {
-        rc = ngx_conf_read_token(cf); /* 解析配置指令 */
+        rc = ngx_conf_read_token(cf); /* 解析配置指令，将解析的指令内存放在cf中 */
 
         /*
          * ngx_conf_read_token() may return
@@ -256,7 +256,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
             goto done;
         }
 
-        if (rc == NGX_CONF_BLOCK_DONE) {
+        if (rc == NGX_CONF_BLOCK_DONE) { /* 如果解析到右花括号，但是当前不是在解析配置块，则错误 */
 
             if (type != parse_block) {
                 ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "unexpected \"}\"");
@@ -329,7 +329,7 @@ failed:
 
 done:
 
-    if (filename) {
+    if (filename) { /* 配置解析错误，如果有文件，需要释放内存、关闭文件 */
         if (cf->conf_file->buffer->start) {
             ngx_free(cf->conf_file->buffer->start);
         }
@@ -341,7 +341,7 @@ done:
             rc = NGX_ERROR;
         }
 
-        cf->conf_file = prev;
+        cf->conf_file = prev; /* 恢复原来的指针 */
     }
 
     if (rc == NGX_ERROR) {
@@ -365,20 +365,20 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
     found = 0;
 
-    for (i = 0; cf->cycle->modules[i]; i++) {
+    for (i = 0; cf->cycle->modules[i]; i++) { /* 遍历所有的模块 */
 
-        cmd = cf->cycle->modules[i]->commands;
+        cmd = cf->cycle->modules[i]->commands; /* 遍历当前模块的所有指令 */
         if (cmd == NULL) {
             continue;
         }
 
         for ( /* void */ ; cmd->name.len; cmd++) {
 
-            if (name->len != cmd->name.len) {
+            if (name->len != cmd->name.len) { /* 比较指令长度是否相同 */
                 continue;
             }
 
-            if (ngx_strcmp(name->data, cmd->name.data) != 0) {
+            if (ngx_strcmp(name->data, cmd->name.data) != 0) { /* 比较指令内容是否相同 */
                 continue;
             }
 
@@ -392,7 +392,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
             /* is the directive's location right ? */
 
-            if (!(cmd->type & cf->cmd_type)) {
+            if (!(cmd->type & cf->cmd_type)) { /*  指令出现的位置要求必须符合 */
                 continue;
             }
 
@@ -460,7 +460,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
                 }
             }
 
-            rv = cmd->set(cf, cmd, conf); /* 调用每个指令的配置解析函数 cf是全局cf，cmd是当前配置的指令内容，conf是将解析结果保存在conf中 */
+            rv = cmd->set(cf, cmd, conf); /* 调用每个指令的配置解析函数 cf是全局cf，cf->args里保存配置的指令内容，cmd是当前配置的指令内容，conf是将解析结果保存在conf中 */
 
             if (rv == NGX_CONF_OK) {
                 return NGX_OK;

@@ -999,7 +999,7 @@ ngx_send_lowat(ngx_connection_t *c, size_t lowat)
 
 
 static char *
-ngx_events_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_events_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* 指令event{}的解析函数 */
 {
     char                 *rv;
     void               ***ctx;
@@ -1013,7 +1013,7 @@ ngx_events_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     /* count the number of the event modules and set up their indices */
 
-    ngx_event_max_module = ngx_count_modules(cf->cycle, NGX_EVENT_MODULE);
+    ngx_event_max_module = ngx_count_modules(cf->cycle, NGX_EVENT_MODULE); /* 返回值为最大的模块 module->ctx_index 取值 */
 
     ctx = ngx_pcalloc(cf->pool, sizeof(void *));
     if (ctx == NULL) {
@@ -1036,7 +1036,7 @@ ngx_events_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
         if (m->create_conf) {
             (*ctx)[cf->cycle->modules[i]->ctx_index] =
-                                                     m->create_conf(cf->cycle);
+                                                     m->create_conf(cf->cycle); /* ngx_event.c:1277、ngx_epoll_module.c:1030、 */
             if ((*ctx)[cf->cycle->modules[i]->ctx_index] == NULL) {
                 return NGX_CONF_ERROR;
             }
@@ -1048,7 +1048,7 @@ ngx_events_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     cf->module_type = NGX_EVENT_MODULE;
     cf->cmd_type = NGX_EVENT_CONF;
 
-    rv = ngx_conf_parse(cf, NULL);
+    rv = ngx_conf_parse(cf, NULL); /* 因为这里传递文件名为NULL，所以在解析到右花括号时，函数返回。ngx_conf_parse函数执行之前保存cf取值，执行之后恢复cf取值 */
 
     *cf = pcf;
 
@@ -1063,7 +1063,7 @@ ngx_events_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
         m = cf->cycle->modules[i]->ctx;
 
-        if (m->init_conf) {
+        if (m->init_conf) { /* 根据配置的指令，在对结构体进行初始化之后，做相应的处理 */
             rv = m->init_conf(cf->cycle,
                               (*ctx)[cf->cycle->modules[i]->ctx_index]);
             if (rv != NGX_CONF_OK) {

@@ -138,7 +138,7 @@ ngx_event_accept(ngx_event_t *ev)
         ngx_accept_disabled = ngx_cycle->connection_n / 8
                               - ngx_cycle->free_connection_n;
 
-        c = ngx_get_connection(s, ev->log);
+        c = ngx_get_connection(s, ev->log); /* 通过重新获得的socket获得 ngx_connection_t 结构 */
 
         if (c == NULL) {
             if (ngx_close_socket(s) == -1) {
@@ -171,7 +171,7 @@ ngx_event_accept(ngx_event_t *ev)
             return;
         }
 
-        ngx_memcpy(c->sockaddr, &sa, socklen);
+        ngx_memcpy(c->sockaddr, &sa, socklen); /* 保存客户端的地址 */
 
         log = ngx_palloc(c->pool, sizeof(ngx_log_t));
         if (log == NULL) {
@@ -224,7 +224,7 @@ ngx_event_accept(ngx_event_t *ev)
 
         c->socklen = socklen;
         c->listening = ls;
-        c->local_sockaddr = ls->sockaddr;
+        c->local_sockaddr = ls->sockaddr; /* 服务器地址信息 */
         c->local_socklen = ls->socklen;
 
 #if (NGX_HAVE_UNIX_DOMAIN)

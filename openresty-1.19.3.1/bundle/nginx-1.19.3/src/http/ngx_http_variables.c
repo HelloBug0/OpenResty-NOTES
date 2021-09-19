@@ -2651,7 +2651,7 @@ ngx_http_variables_init_vars(ngx_conf_t *cf)
 
     for (i = 0; i < cmcf->variables.nelts; i++) {
 
-        for (n = 0; n < cmcf->variables_keys->keys.nelts; n++) {
+        for (n = 0; n < cmcf->variables_keys->keys.nelts; n++) { /* http所有的变量名 */
 
             av = key[n].value;
 

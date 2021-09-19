@@ -216,7 +216,7 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     pcf = *cf;
     cf->ctx = ctx;
 
-    for (m = 0; cf->cycle->modules[m]; m++) {
+    for (m = 0; cf->cycle->modules[m]; m++) { /* 调用所有HTTP模块的 preconfiguration 函数 */
         if (cf->cycle->modules[m]->type != NGX_HTTP_MODULE) {
             continue;
         }
@@ -265,7 +265,7 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             }
         }
 
-        rv = ngx_http_merge_servers(cf, cmcf, module, mi);
+        rv = ngx_http_merge_servers(cf, cmcf, module, mi); /* 合并每一个模块的servers里的配置 */
         if (rv != NGX_CONF_OK) {
             goto failed;
         }
@@ -278,7 +278,7 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
         clcf = cscfp[s]->ctx->loc_conf[ngx_http_core_module.ctx_index];
 
-        if (ngx_http_init_locations(cf, cscfp[s], clcf) != NGX_OK) {
+        if (ngx_http_init_locations(cf, cscfp[s], clcf) != NGX_OK) { /* 初始化每一个server的location */
             return NGX_CONF_ERROR;
         }
 
@@ -288,11 +288,11 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     }
 
 
-    if (ngx_http_init_phases(cf, cmcf) != NGX_OK) {
+    if (ngx_http_init_phases(cf, cmcf) != NGX_OK) { /* 初始化 cmcf->phases[NGX_HTTP_POST_READ_PHASE].handlers 数组，NGINX的所有阶段 */
         return NGX_CONF_ERROR;
     }
 
-    if (ngx_http_init_headers_in_hash(cf, cmcf) != NGX_OK) {
+    if (ngx_http_init_headers_in_hash(cf, cmcf) != NGX_OK) { /* 初始化 cmcf->headers_in_hash 哈希表，保存所有请求头域对应的处理方法 */
         return NGX_CONF_ERROR;
     }
 
@@ -305,13 +305,13 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         module = cf->cycle->modules[m]->ctx;
 
         if (module->postconfiguration) {
-            if (module->postconfiguration(cf) != NGX_OK) {
+            if (module->postconfiguration(cf) != NGX_OK) { /* 调用所有模块的postconfiguration方法 */
                 return NGX_CONF_ERROR;
             }
         }
     }
 
-    if (ngx_http_variables_init_vars(cf) != NGX_OK) {
+    if (ngx_http_variables_init_vars(cf) != NGX_OK) { /* 初始化 cmcf->variables_hash 哈希表，保存http变量，不是所有的http变量，而是cmcf->variables中出现的变量 */
         return NGX_CONF_ERROR;
     }
 
@@ -468,7 +468,7 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
         + use_rewrite      /* post rewrite phase */
         + use_access;      /* post access phase */
 
-    for (i = 0; i < NGX_HTTP_LOG_PHASE; i++) {
+    for (i = 0; i < NGX_HTTP_LOG_PHASE; i++) { /* 统计所有的处理句柄，某个阶段可能包含多个处理句柄 */
         n += cmcf->phases[i].handlers.nelts;
     }
 
@@ -481,7 +481,7 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
     cmcf->phase_engine.handlers = ph;
     n = 0;
 
-    for (i = 0; i < NGX_HTTP_LOG_PHASE; i++) {
+    for (i = 0; i < NGX_HTTP_LOG_PHASE; i++) { /* 将所有阶段的处理句柄保存在 cmcf->phase_engine.handlers 数组中 */
         h = cmcf->phases[i].handlers.elts;
 
         switch (i) {
@@ -567,8 +567,8 @@ ngx_http_merge_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
     ngx_http_core_loc_conf_t    *clcf;
     ngx_http_core_srv_conf_t   **cscfp;
 
-    cscfp = cmcf->servers.elts;
-    ctx = (ngx_http_conf_ctx_t *) cf->ctx;
+    cscfp = cmcf->servers.elts; /* 所有的server的配置 */
+    ctx = (ngx_http_conf_ctx_t *) cf->ctx; /* ctx是main级别的配置 */
     saved = *ctx;
     rv = NGX_CONF_OK;
 
@@ -578,7 +578,7 @@ ngx_http_merge_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
 
         ctx->srv_conf = cscfp[s]->ctx->srv_conf;
 
-        if (module->merge_srv_conf) {
+        if (module->merge_srv_conf) { /* 将main级别的和server级别的进行server的合并 */
             rv = module->merge_srv_conf(cf, saved.srv_conf[ctx_index],
                                         cscfp[s]->ctx->srv_conf[ctx_index]);
             if (rv != NGX_CONF_OK) {
@@ -586,7 +586,7 @@ ngx_http_merge_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
             }
         }
 
-        if (module->merge_loc_conf) {
+        if (module->merge_loc_conf) { /* 将main级别的和server级别的进行location的合并 */
 
             /* merge the server{}'s loc_conf */
 
@@ -602,7 +602,7 @@ ngx_http_merge_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
 
             clcf = cscfp[s]->ctx->loc_conf[ngx_http_core_module.ctx_index];
 
-            rv = ngx_http_merge_locations(cf, clcf->locations,
+            rv = ngx_http_merge_locations(cf, clcf->locations, /* 将server级别的和location级别的进行location的合并 */
                                           cscfp[s]->ctx->loc_conf,
                                           module, ctx_index);
             if (rv != NGX_CONF_OK) {
@@ -1376,7 +1376,7 @@ ngx_http_add_server(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 
 static ngx_int_t
 ngx_http_optimize_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
-    ngx_array_t *ports)
+    ngx_array_t *ports) /* cmcf->ports */
 {
     ngx_uint_t             p, a;
     ngx_http_conf_port_t  *port;

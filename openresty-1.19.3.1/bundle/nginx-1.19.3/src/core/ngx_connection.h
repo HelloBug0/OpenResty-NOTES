@@ -143,7 +143,7 @@ struct ngx_connection_s {
 
     int                 type;
 
-    struct sockaddr    *sockaddr;
+    struct sockaddr    *sockaddr; /* accept 执行成功之后，这个地址表示客户端的地址信息 */
     socklen_t           socklen;
     ngx_str_t           addr_text;
 
@@ -155,7 +155,7 @@ struct ngx_connection_s {
 
     ngx_udp_connection_t  *udp;
 
-    struct sockaddr    *local_sockaddr;
+    struct sockaddr    *local_sockaddr; /* 服务端的地址信息 */
     socklen_t           local_socklen;
 
     ngx_buf_t          *buffer;

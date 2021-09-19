@@ -106,14 +106,14 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
                 old_cycle->conf_file.len + 1);
 
     cycle->conf_param.len = old_cycle->conf_param.len;
-    cycle->conf_param.data = ngx_pstrdup(pool, &old_cycle->conf_param);
+    cycle->conf_param.data = ngx_pstrdup(pool, &old_cycle->conf_param); /* 启动命令中如果没有参数，conf_param.data = "" 空字符串 */
     if (cycle->conf_param.data == NULL) {
         ngx_destroy_pool(pool);
         return NULL;
     }
 
 
-    n = old_cycle->paths.nelts ? old_cycle->paths.nelts : 10;
+    n = old_cycle->paths.nelts ? old_cycle->paths.nelts : 10; /* nginx需要打开的目录个数 */
 
     if (ngx_array_init(&cycle->paths, pool, n, sizeof(ngx_path_t *))
         != NGX_OK)
@@ -266,7 +266,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     log->log_level = NGX_LOG_DEBUG_ALL;
 #endif
 
-    if (ngx_conf_param(&conf) != NGX_CONF_OK) {
+    if (ngx_conf_param(&conf) != NGX_CONF_OK) { /* 首先解析命令行中的指令 */
         environ = senv;
         ngx_destroy_cycle_pools(&conf);
         return NULL;

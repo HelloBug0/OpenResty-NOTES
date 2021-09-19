@@ -96,7 +96,7 @@ struct ngx_open_file_s {
 
 
 typedef struct {
-    ngx_file_t            file;
+    ngx_file_t            file; /* 配置文件nginx.conf信息，如fd，文件名等 */
     ngx_buf_t            *buffer;
     ngx_buf_t            *dump;
     ngx_uint_t            line;

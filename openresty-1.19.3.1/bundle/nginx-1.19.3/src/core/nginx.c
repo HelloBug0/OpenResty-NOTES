@@ -257,11 +257,11 @@ main(int argc, char *const *argv)
 
     saved_init_cycle_pool = init_cycle.pool;
     /* 将启动命令中的参数保存在环境变量中，第一个参数就是可执行命令nginx */
-    if (ngx_save_argv(&init_cycle, argc, argv) != NGX_OK) {
+    if (ngx_save_argv(&init_cycle, argc, argv) != NGX_OK) { /* 保存在全局变量：ngx_argc, ngx_argv中 */
         return 1;
     }
 
-    if (ngx_process_options(&init_cycle) != NGX_OK) {
+    if (ngx_process_options(&init_cycle) != NGX_OK) { /* 根据启动命令设置工作路径、配置文件名称、配置文件目录 */
         return 1;
     }
     /* 获得操作系统相关信息，如CPU的个数、内存页大小、socket数等，将信息设置在全局变量中 */
@@ -283,7 +283,7 @@ main(int argc, char *const *argv)
 
     ngx_slab_sizes_init();
 
-    if (ngx_add_inherited_sockets(&init_cycle) != NGX_OK) {
+    if (ngx_add_inherited_sockets(&init_cycle) != NGX_OK) { /* Nginx二进制文件发生变更，热部署时才会使用该功能 */
         return 1;
     }
 
@@ -967,7 +967,7 @@ ngx_process_options(ngx_cycle_t *cycle)
 #else
         ngx_str_set(&cycle->conf_prefix, NGX_PREFIX);
 #endif
-        ngx_str_set(&cycle->prefix, NGX_PREFIX);
+        ngx_str_set(&cycle->prefix, NGX_PREFIX); /* 设置值为：/path/to/openresty/nginx/ */
 
 #endif
     }
@@ -977,14 +977,14 @@ ngx_process_options(ngx_cycle_t *cycle)
         cycle->conf_file.data = ngx_conf_file;
 
     } else {
-        ngx_str_set(&cycle->conf_file, NGX_CONF_PATH);
+        ngx_str_set(&cycle->conf_file, NGX_CONF_PATH); /* 设置值为：conf/nginx.conf */
     }
 
-    if (ngx_conf_full_name(cycle, &cycle->conf_file, 0) != NGX_OK) {
+    if (ngx_conf_full_name(cycle, &cycle->conf_file, 0) != NGX_OK) { /* 设置值为：/path/to/openresty/nginx/conf/nginx.conf */
         return NGX_ERROR;
     }
 
-    for (p = cycle->conf_file.data + cycle->conf_file.len - 1;
+    for (p = cycle->conf_file.data + cycle->conf_file.len - 1; /* 设置conf_prefix为：/path/to/openresty/nginx/conf/*/
          p > cycle->conf_file.data;
          p--)
     {
@@ -1470,7 +1470,7 @@ ngx_get_cpu_affinity(ngx_uint_t n)
 
 
 static char *
-ngx_set_worker_processes(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_set_worker_processes(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* 将cf里的配置参数初始化到conf中 */
 {
     ngx_str_t        *value;
     ngx_core_conf_t  *ccf;

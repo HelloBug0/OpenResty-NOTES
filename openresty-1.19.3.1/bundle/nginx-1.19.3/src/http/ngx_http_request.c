@@ -83,7 +83,7 @@ static char *ngx_http_client_errors[] = {
 
 ngx_http_header_t  ngx_http_headers_in[] = {
     { ngx_string("Host"), offsetof(ngx_http_headers_in_t, host),
-                 ngx_http_process_host },
+                 ngx_http_process_host }, /* 请求头域解析的过程中，如果发现Host头域，将会调用该函数，调用位置：src/http/ngx_http_request.c:1463 */
 
     { ngx_string("Connection"), offsetof(ngx_http_headers_in_t, connection),
                  ngx_http_process_connection },
@@ -228,7 +228,7 @@ ngx_http_init_connection(ngx_connection_t *c)
 
     /* find the server configuration for the address:port */
 
-    port = c->listening->servers;
+    port = c->listening->servers; /* 保存当前监听的addrss:port对应的所有的server信息 */
 
     if (port->naddrs > 1) {
 
@@ -267,7 +267,7 @@ ngx_http_init_connection(ngx_connection_t *c)
         default: /* AF_INET */
             sin = (struct sockaddr_in *) c->local_sockaddr;
 
-            addr = port->addrs;
+            addr = port->addrs; /* 一个监听端口号可能对应多个IP地址，这里的addr就是多个IP地址信息对应的数据结构 */
 
             /* the last address is "*" */
 
@@ -490,7 +490,7 @@ ngx_http_wait_request_handler(ngx_event_t *rev) /* 该函数是事件处理句�
 
     ngx_reusable_connection(c, 0);
 
-    c->data = ngx_http_create_request(c);
+    c->data = ngx_http_create_request(c); /* 调用该函数之后，c->data取值为r，在此之前c->data == hc，hc是在函数 ngx_http_init_connection 中进行初始化的 */
     if (c->data == NULL) {
         ngx_http_close_connection(c);
         return;
@@ -508,7 +508,7 @@ ngx_http_create_request(ngx_connection_t *c)
     ngx_http_log_ctx_t        *ctx;
     ngx_http_core_loc_conf_t  *clcf;
 
-    r = ngx_http_alloc_request(c);
+    r = ngx_http_alloc_request(c); /* 在申请r内存的时候，会对其进行部分初始化，会根据hc对其进行初始化，如r->http_connection=hc, hc->conf_ctx->srv_conf;等 */
     if (r == NULL) {
         return NULL;
     }

@@ -2796,7 +2796,7 @@ ngx_http_get_forwarded_addr_internal(ngx_http_request_t *r, ngx_addr_t *addr,
 
 
 static char *
-ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
+ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) /* server指令解析函数 */
 {
     char                        *rv;
     void                        *mconf;
@@ -2841,7 +2841,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
         module = cf->cycle->modules[i]->ctx;
 
         if (module->create_srv_conf) {
-            mconf = module->create_srv_conf(cf);
+            mconf = module->create_srv_conf(cf); /* 调用所有HTTP模块的create_srv_conf */
             if (mconf == NULL) {
                 return NGX_CONF_ERROR;
             }
@@ -2850,7 +2850,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
         }
 
         if (module->create_loc_conf) {
-            mconf = module->create_loc_conf(cf);
+            mconf = module->create_loc_conf(cf); /* 调用所有HTTP模块的create_loc_conf */
             if (mconf == NULL) {
                 return NGX_CONF_ERROR;
             }
@@ -2868,7 +2868,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
 
     cmcf = ctx->main_conf[ngx_http_core_module.ctx_index];
 
-    cscfp = ngx_array_push(&cmcf->servers);
+    cscfp = ngx_array_push(&cmcf->servers); /* 数组元素类型：ngx_http_core_srv_conf_t */
     if (cscfp == NULL) {
         return NGX_CONF_ERROR;
     }
@@ -3069,7 +3069,7 @@ ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
 
     pclcf = pctx->loc_conf[ngx_http_core_module.ctx_index];
 
-    if (cf->cmd_type == NGX_HTTP_LOC_CONF) {
+    if (cf->cmd_type == NGX_HTTP_LOC_CONF) { /* 当前配置指令是在location中还是在server中 */
 
         /* nested location */
 
@@ -4195,7 +4195,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) /* listen�
         return NGX_CONF_ERROR;
     }
 
-    for (n = 0; n < u.naddrs; n++) {
+    for (n = 0; n < u.naddrs; n++) { /* listen指令可以指定多个监听端口 */
         lsopt.sockaddr = u.addrs[n].sockaddr;
         lsopt.socklen = u.addrs[n].socklen;
         lsopt.addr_text = u.addrs[n].name;
